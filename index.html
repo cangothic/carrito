@@ -1,0 +1,2191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!--artefacto-->
+<title>El carrito de lycan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Un juego de El bucle de lycan para aprender las estructuras de control de Python (for, if, elif, else y while) programando un carrito. Gratis en el navegador.">
+<meta property="og:title" content="El carrito de lycan · El bucle de lycan">
+<meta property="og:description" content="Programa un carrito escribiendo Python de verdad y aprende for, if y while: 15 niveles gratis en el navegador, en la computadora o en el celular.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://carrito.canred.pro/">
+<meta property="og:image" content="https://carrito.canred.pro/portada.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap">
+<style>
+/* Un solo tema, a propósito: el neón del canal sobre tinta (marca/README.md).
+   El mapa a la izquierda y el programa a la derecha; en el celular, uno debajo del otro. */
+:root{
+  color-scheme:dark;
+  --ink-950:#04060C; --ink-900:#070B14; --ink-800:#0C1322; --ink-700:#131C30; --ink-600:#1C2740;
+  --ink-500:#2A3756; --ink-400:#45547A; --ink-300:#7584A8; --ink-200:#A9B6D3; --ink-100:#D6DFF0; --ink-50:#EEF3FC;
+  --cyan-500:#22D3FF; --cyan-400:#5BE0FF; --magenta-500:#FF2E9A; --magenta-400:#FF66B5;
+  --violet-500:#A78BFA; --lavanda:#C4B1FF; --green-500:#3CF0A5; --red-500:#FF4D5E; --oro:#FFC94D;
+  --rejilla:rgba(34,211,255,.045);
+  --font-display:'Chakra Petch','Segoe UI',system-ui,sans-serif;
+  --font-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --lh:22px; --code:14px;
+}
+@media (max-width:700px){ :root{ --lh:24px; --code:16px } }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{
+  margin:0;background-color:var(--ink-950);color:var(--ink-100);
+  font-family:var(--font-body);font-size:15px;line-height:1.5;
+  background-image:linear-gradient(var(--rejilla) 1px,transparent 1px),linear-gradient(90deg,var(--rejilla) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--cyan-500);outline-offset:2px}
+a{color:var(--cyan-400)}
+code{font-family:var(--font-mono);font-size:.92em;color:var(--cyan-400);background:var(--ink-800);border:1px solid var(--ink-600);border-radius:4px;padding:0 .3em;white-space:nowrap}
+.lobo{width:1em;height:1em;flex:0 0 auto}
+
+/* ---------- barra ---------- */
+.barra{
+  display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;
+  max-width:1360px;margin:0 auto;padding-block:14px 4px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.marca{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink-50)}
+.marca .lobo{width:34px;height:34px;filter:drop-shadow(0 0 8px rgba(255,46,154,.45))}
+.marca b{font-family:var(--font-display);font-weight:700;font-size:21px;letter-spacing:.01em;line-height:1}
+.marca small{display:block;font-family:var(--font-mono);font-size:11.5px;color:var(--ink-300);margin-top:3px;letter-spacing:.02em}
+.esp{flex:1}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:6px 12px;
+  background:var(--ink-800);border:1px solid var(--ink-500);border-radius:8px;cursor:pointer;
+  font-size:14px;font-weight:500;color:var(--ink-100);transition:border-color .15s,background .15s;
+}
+.btn:hover{border-color:var(--ink-300);background:var(--ink-700)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primario{background:var(--cyan-500);border-color:var(--cyan-500);color:var(--ink-950);font-weight:600;box-shadow:0 0 22px -6px var(--cyan-500)}
+.btn.primario:hover{background:var(--cyan-400);border-color:var(--cyan-400)}
+.btn.parar{background:var(--ink-800);border-color:var(--red-500);color:var(--red-500);box-shadow:none}
+.btn.texto{background:none;border-color:transparent;color:var(--ink-300);padding-inline:6px}
+.btn.texto:hover{color:var(--ink-50);background:none}
+.btn.icono{width:36px;justify-content:center;padding:0}
+.btn.icono[aria-pressed="false"]{color:var(--ink-400)}
+.estrellas-total{font-family:var(--font-mono);font-size:12px;color:var(--oro)}
+
+/* ---------- distribución ---------- */
+.app{
+  display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:22px;align-items:start;
+  max-width:1360px;margin:0 auto;padding-block:10px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+@media (max-width:940px){.app{grid-template-columns:minmax(0,1fr)}}
+.col-mapa,.col-codigo{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+.eyebrow{margin:0;font-family:var(--font-mono);font-size:12.5px;color:var(--cyan-400);letter-spacing:.03em}
+h1{margin:4px 0 6px;font-family:var(--font-display);font-weight:700;font-size:30px;line-height:1.1;color:var(--ink-50);text-wrap:balance}
+.objetivo{margin:0;font-size:16px;color:var(--ink-100);max-width:62ch;text-wrap:pretty}
+
+/* lycan */
+.lycan{
+  display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;
+  padding:12px 14px;border:1px dashed rgba(255,46,154,.55);border-radius:12px;background:rgba(255,46,154,.06);
+}
+.lycan .lobo{grid-row:span 2;width:40px;height:40px;filter:drop-shadow(0 0 6px rgba(255,46,154,.5))}
+.lycan-frase{margin:0;font-size:15.5px;color:var(--ink-50)}
+.lycan-frase b{font-family:var(--font-display);font-weight:600;color:var(--magenta-400);letter-spacing:.02em;margin-right:4px}
+.lycan-pie{margin:0;font-size:13px;color:var(--ink-300)}
+
+/* pruebas */
+.pruebas{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pruebas .nota{font-size:12.5px;color:var(--ink-300);margin-left:4px}
+.tab{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;cursor:pointer;
+  background:var(--ink-900);border:1px solid var(--ink-500);font-family:var(--font-mono);font-size:12.5px;color:var(--ink-200);
+}
+.tab[aria-selected="true"]{border-color:var(--cyan-500);color:var(--ink-50);box-shadow:0 0 14px -6px var(--cyan-500)}
+.tab i{width:8px;height:8px;border-radius:50%;background:var(--ink-500);display:inline-block}
+.tab.ok i{background:var(--green-500);box-shadow:0 0 8px var(--green-500)}
+.tab.mal i{background:var(--red-500);box-shadow:0 0 8px var(--red-500)}
+
+/* mapa */
+.caja-mapa{
+  position:relative;display:flex;justify-content:center;padding:12px;min-width:0;
+  background:var(--ink-900);border:1px solid rgba(34,211,255,.28);border-radius:12px;
+  box-shadow:0 0 70px -24px rgba(34,211,255,.45);
+}
+canvas{display:block;max-width:100%;border-radius:4px}
+.aviso{
+  position:absolute;top:18px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);
+  padding:7px 14px;border-radius:999px;font-family:var(--font-display);font-weight:600;font-size:15px;
+  background:rgba(4,6,12,.88);border:1px solid var(--ink-400);color:var(--ink-50);text-align:center;
+  animation:entra .35s var(--ease-out);
+}
+.aviso.ok{border-color:var(--green-500);color:var(--green-500);box-shadow:0 0 22px -6px var(--green-500)}
+.aviso.mal{border-color:var(--red-500);color:var(--red-500);box-shadow:0 0 22px -6px var(--red-500)}
+@keyframes entra{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
+.estado{margin:0;font-family:var(--font-mono);font-size:12.5px;color:var(--ink-300);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:4px 16px}
+.estado b{color:var(--ink-100);font-weight:500}
+
+/* ---------- editor ---------- */
+.panel{background:var(--ink-900);border:1px solid var(--ink-600);border-radius:12px;min-width:0}
+.editor-panel{overflow:hidden}
+.pestana{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 14px;height:38px;border-bottom:1px solid var(--ink-600);background:var(--ink-800)}
+.archivo{font-family:var(--font-mono);font-size:12.5px;color:var(--ink-50);display:flex;align-items:center;gap:8px}
+.archivo::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--oro);box-shadow:0 0 8px rgba(255,201,77,.6)}
+.lineas{font-family:var(--font-mono);font-size:12px;color:var(--ink-300)}
+.lineas.excede{color:var(--red-500)}
+.editor{display:flex;position:relative;background:var(--ink-950);min-width:0}
+.numeros{
+  flex:0 0 auto;width:44px;padding:10px 8px 10px 0;text-align:right;overflow:hidden;user-select:none;
+  font-family:var(--font-mono);font-size:var(--code);line-height:var(--lh);color:var(--ink-400);border-right:1px solid var(--ink-700);
+}
+.numeros div{height:var(--lh);position:relative}
+.numeros .activa{color:var(--cyan-400)}
+.numeros .activa::before{content:"▶";position:absolute;left:6px;font-size:.7em;color:var(--cyan-500)}
+.numeros .error{color:var(--red-500)}
+.area{position:relative;flex:1;min-width:0;overflow:hidden}
+.resaltado,#codigo{
+  margin:0;padding:10px 14px;border:0;font-family:var(--font-mono);font-size:var(--code);line-height:var(--lh);
+  tab-size:4;white-space:pre;font-variant-ligatures:none;letter-spacing:0;
+}
+.resaltado{position:absolute;top:0;left:0;min-width:100%;width:max-content;pointer-events:none;color:var(--ink-100)}
+.resaltado .l{min-height:var(--lh);padding-right:14px;margin-inline:-14px;padding-left:14px}
+.resaltado .l.activa{background:rgba(34,211,255,.13)}
+.resaltado .l.error{background:rgba(255,77,94,.16)}
+#codigo{
+  position:relative;display:block;width:100%;resize:none;overflow:auto;background:transparent;
+  color:transparent;caret-color:var(--cyan-400);outline:none;
+}
+#codigo::selection{background:rgba(34,211,255,.28);color:transparent}
+.k{color:var(--magenta-400)} .f{color:var(--cyan-400)} .b{color:var(--lavanda)}
+.n{color:var(--oro)} .s{color:var(--green-500)} .c{color:var(--ink-300);font-style:italic}
+
+.controles{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--ink-600)}
+.vel{display:inline-flex;border:1px solid var(--ink-500);border-radius:8px;overflow:hidden;margin-left:auto}
+.vel button{min-height:34px;padding:0 9px;background:transparent;border:0;cursor:pointer;font-family:var(--font-mono);font-size:12px;color:var(--ink-300)}
+.vel button+button{border-left:1px solid var(--ink-600)}
+.vel button[aria-pressed="true"]{background:var(--ink-600);color:var(--cyan-400)}
+
+.paleta{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border-top:1px solid var(--ink-600)}
+.grupo{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.grupo-t{font-size:11.5px;color:var(--ink-300);width:76px;flex:0 0 auto}
+.chip{
+  min-height:32px;padding:4px 9px;border-radius:6px;cursor:pointer;background:var(--ink-800);border:1px solid var(--ink-600);
+  font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;
+}
+.chip:hover{background:var(--ink-700);border-color:var(--ink-400)}
+.chip.orden{color:var(--cyan-400)} .chip.estructura{color:var(--magenta-400)} .chip.pregunta{color:var(--lavanda)} .chip.sangria{color:var(--ink-200)}
+@media (max-width:520px){.grupo-t{width:100%}}
+
+.consola{
+  border-top:1px solid var(--ink-600);background:var(--ink-950);padding:10px 14px;min-height:70px;max-height:260px;overflow:auto;
+  font-family:var(--font-mono);font-size:12.5px;line-height:1.55;
+}
+.consola p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.consola .info{color:var(--ink-300)}
+.consola .ok{color:var(--green-500)}
+.consola .mal{color:var(--red-500)}
+.consola .tb{color:var(--ink-200)}
+.consola .salida{color:var(--ink-50)}
+.consola .exp{font-family:var(--font-body);font-size:14px;color:var(--ink-100);margin-top:4px}
+.consola .ojo{font-family:var(--font-body);font-size:14px;color:var(--oro);margin-top:6px}
+
+.ayuda summary{cursor:pointer;padding:10px 14px;font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--ink-50)}
+.ayuda dl{margin:0;padding:0 14px 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:baseline}
+.ayuda dt{font-family:var(--font-mono);font-size:12.5px;white-space:nowrap}
+.ayuda dd{margin:0;font-size:13.5px;color:var(--ink-200)}
+@media (max-width:520px){.ayuda dl{grid-template-columns:minmax(0,1fr)} .ayuda dd{margin-bottom:6px}}
+.extras{display:flex;flex-wrap:wrap;gap:4px 8px}
+.pista{margin:0;padding:10px 14px;border-radius:10px;background:rgba(196,177,255,.07);border:1px solid rgba(196,177,255,.35);color:var(--ink-50);font-size:14.5px}
+
+/* ---------- ventanas ---------- */
+.velo{
+  position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(4,6,12,.8);backdrop-filter:blur(4px);
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+}
+.modal{
+  width:100%;max-width:580px;max-height:calc(100dvh - 32px);overflow:auto;padding:22px 24px;
+  background:var(--ink-900);border:1px solid rgba(34,211,255,.45);border-radius:14px;box-shadow:0 0 80px -20px rgba(34,211,255,.5);
+  animation:sube .4s var(--ease-out);
+}
+@keyframes sube{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.modal h2{margin:4px 0 8px;font-family:var(--font-display);font-weight:700;font-size:26px;line-height:1.15;color:var(--ink-50);text-wrap:balance}
+.modal h3{margin:18px 0 6px;font-family:var(--font-display);font-weight:600;font-size:16px;color:var(--ink-50)}
+.modal p{margin:0 0 6px}
+.estrellas{font-size:30px;letter-spacing:4px;color:var(--oro);text-shadow:0 0 14px rgba(255,201,77,.6)}
+.estrellas .v{color:var(--ink-500);text-shadow:none}
+.v-lineas{color:var(--ink-200);font-size:14px}
+.v-lycan{margin-top:14px;padding:10px 14px;border:1px dashed rgba(255,46,154,.55);border-radius:10px;background:rgba(255,46,154,.06)}
+.v-lycan h3{margin-top:2px;color:var(--magenta-400)}
+.v-lycan .cita{text-decoration:line-through;text-decoration-color:var(--magenta-500);color:var(--ink-200)}
+pre.codigo{margin:0;padding:10px 14px;background:var(--ink-950);border:1px solid var(--ink-600);border-radius:8px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.6}
+.v-curso{margin-top:14px !important;font-size:13.5px;color:var(--ink-300)}
+.v-botones{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.modal-cab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.seccion-n{margin:16px 0 8px;font-family:var(--font-mono);font-size:12.5px;color:var(--cyan-400)}
+.rejilla-n{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.nv{
+  display:grid;grid-template-columns:auto 1fr;gap:2px 8px;align-items:center;text-align:left;padding:8px 10px;cursor:pointer;
+  background:var(--ink-800);border:1px solid var(--ink-600);border-radius:8px;
+}
+.nv:hover{border-color:var(--ink-300)}
+.nv.actual{border-color:var(--cyan-500)}
+.nv-num{grid-row:span 2;font-family:var(--font-display);font-weight:700;font-size:20px;color:var(--ink-300)}
+.nv.hecho .nv-num{color:var(--green-500)}
+.nv-tit{font-size:13.5px;font-weight:500;color:var(--ink-50);line-height:1.2}
+.nv-est{font-size:12px;letter-spacing:2px;color:var(--oro)}
+.nv-est .v{color:var(--ink-500)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="lobo" viewBox="0 0 152.49 158.93"><g><g><g><path fill="#c4b1ff" d="M143.32,56.81s0,0,0-.01c.51-.49.85-1.1,1.05-1.75-.3-.45-.98-.6-1.81-.94-.91-.37-2.1-.99-3.41-2.13.31.46.73,1.21.86,2.18.18,1.39-.39,2.15.11,2.78.07.09.15.16.23.21.06.04.12.07.17.09.1.04.21.07.32.09.1.02.2.04.31.06.09.02.18.04.27.06,0,0,0,0,.01,0,.41.12.86.09,1.22-.14h.01s.03-.03.04-.04c.22-.14.41-.3.59-.48Z"/><path fill="#c4b1ff" d="M137.58,84.08c.06.15.19.27.33.32-.14-.15-.26-.29-.37-.42.01.03.03.07.04.1Z"/><path fill="#c4b1ff" d="M136.46,86.19c.2-.08.32-.25.35-.44-.1.15-.21.3-.35.44Z"/><path fill="#ff2e9a" d="M152.24,83.65c-.33-.77-.64-1.52-.94-2.24l-1.47.03c-.62,0-1.2.29-1.59.77-.36.44-.5.99-.4,1.53.01.06.03.13.05.19l.86,2.99.06.19c.45-.15.88-.32,1.27-.49h0c.54-.24,1.02-.5,1.42-.74.77-.46,1.09-1.41.74-2.23Z"/><path fill="#ff2e9a" d="M151.4,42.75c.47-.3.75-.66.84-1.09.86-4.1-.59-7.33-2.7-9.75-2.85-3.27-6.92-5.07-8.13-5.56-.26.26-.69.65-1.23,1.1-1.14.94-2.78,2.1-4.52,2.64.47.09.99.13,1.51.07.3-.03.57.15.65.44.08.29-.06.59-.33.71-1.33.62-4.93,2.23-7.47,2.68.78.43,1.77.82,2.77.78.19,0,.36.08.48.21.07.08.12.18.14.3.05.31-.13.59-.43.68-.22.07-5.43,1.63-7.41,2-.55.1-.87.39-.87.81-.02.77.97,1.84,3.18,2.37,1.77.42,16.17,3.74,22.06,2.2.57-.15,1.06-.35,1.46-.6Z"/></g><path fill="#ff2e9a" d="M142.73,57.28s-.02.02-.04.03h-.01c-.36.24-.81.27-1.22.15,0,0,0,0-.01,0-.09-.03-.18-.05-.27-.06-.1-.02-.21-.04-.31-.06-.11-.03-.22-.05-.32-.09-.06-.02-.12-.05-.17-.09-.08-.05-.16-.12-.23-.21-.5-.64.07-1.39-.11-2.78-.12-.97-.54-1.72-.86-2.18,1.3,1.14,2.5,1.76,3.41,2.13.83.34,1.5.49,1.81.94-.19.65-.54,1.26-1.05,1.75,0,0,0,0,0,.01-.18.17-.37.34-.59.48Z"/><path fill="#ff2e9a" d="M146.71,84.26c-.03-.1-.06-.2-.07-.3-.17-.89.07-1.81.65-2.52.62-.76,1.54-1.2,2.52-1.22l.98-.02c-1.18-2.87-2.15-5.36-2.77-7.43-3.34-11.24,1.84-10.41,3.85-17.51.62-2.19.12-6.39-1.5-10.8-6.12,1.64-19.84-1.44-22.77-2.14-1.68-.4-2.76-1.08-3.39-1.8-.53-.61-.74-1.24-.72-1.79.03-1,.76-1.77,1.87-1.97,1.08-.2,3.26-.8,4.95-1.29-1.5-.62-2.58-1.61-2.64-1.67-.22-.2-.26-.55-.08-.8.18-.25.51-.33.79-.18.68.37,3.55-.49,6.46-1.68-1.32-.35-2.24-.94-2.3-.99-.25-.16-.34-.48-.22-.75.12-.27.42-.42.71-.34,2.16.57,4.86-1.28,6.45-2.61-.34-.46-.56-.73-.63-.75-1.27-.35-2.85-.34-3.48-.42-1.83-2.36-3.97-4.88-6.44-7.45-2.13-2.22-4.23-4.18-6.22-5.91.44,1.63.88,3.25,1.33,4.88-1.56-2.26-3.75-5-6.77-7.71-2.43-2.19-4.8-3.83-6.83-5.05.75,1.58,1.5,3.17,2.25,4.75-2.11-1.74-4.85-3.71-8.24-5.51-2.8-1.48-5.42-2.53-7.69-3.27l2.11,3.74c-4.99-1.27-10.83-2.41-17.4-3.03-9.42-.88-17.69-.46-24.34.37l3.89,2.49c-3.78.6-8.35,1.65-13.35,3.51-5.97,2.22-10.76,4.94-14.35,7.34,1.37.21,2.74.41,4.11.62-3.77,1.72-8.59,4.36-13.6,8.39-4.91,3.96-8.47,8.03-10.93,11.29,1.08.05,2.17.09,3.25.14-1.86,2.21-4.07,5.12-6.2,8.76,5.4-5.19,14.22-12.84,19.35-12.94-.1.06-1.6.89-3.32,3.11,0,0,12.7-6.02,15.47-4.42,0,0-4.53,1.69-5.5,3.1,0,0,18.17-4.39,21.07-2.52,0,0-4.25,1.17-5.47,2.18,0,0,11.87,2.75,14.7,7.69,1.78-.75,3.04-1.22,3.12-1.25h0c1.35-2.7,2.21-5.58,2.89-8.58,1.37-6.59,5.64-10.64,11.95-12.66.49-.15.76.57.26.77-3.61,1.27-7.06,3.47-9.03,6.81-2.03,3.38-2.09,7.51-3.44,11.21-.66,1.92-1.52,3.77-2.54,5.52-.51.87-1.07,1.73-1.67,2.55-.5.66-1.08,1.37-1.14,2.22-.1.77.12,1.55.58,2.18.59.85,1.12,1.68,1.65,2.53.97,1.54,1.92,3.11,2.91,4.56.79.49,1.69,1,2.71,1.48,1.42.68,4.44,1.97,13.09,3.37,6.54,1.05,10.09,1.16,10.75,3.16.39,1.18-.3,2.79-.35,2.88-.67,1.52-1.92,2.24-2.35,2.47-.07-.01-1.51-.31-2.53.78-.62.66-.85,1.58-.63,2.45h0c1.32.69,2.99.83,4.43.84.37-.02.42.54.05.58-1.57.15-3.18.1-4.67-.43-.09.48-.13,1.11.05,1.81.24.93.75,1.53,1.02,1.82.04.08.08.17.13.27h0c1.25.05,2.62-.32,3.71-.63.12-.05.21.15.09.2-1,.46-2.15.93-3.31,1.13.09.1.19.21.3.31.86.79,1.83.96,2.22,1,1.07-.14,2.83-.51,4.57-1.7,1.92-1.31,2.89-2.97,3.48-4.06,4.49-8.24,6.83-12.56,5.06-15.82-1.44-2.65-4.17-1.97-10.54-5.18-4.25-2.15-7.35-4.63-9.3-6.39l3.4-2.61s.36.03.98.1c2.04-2.54,3-5.93,3.58-9.11.24-1.43.41-2.89.45-4.32,0-.4.62-.43.64-.02.03,1.23.02,2.47-.06,3.72-.22,3.49-.94,6.97-2.68,9.98,3.97.61,10.98,2.11,14.27,5.4,0-.02,0-.04.01-.06.23-1.63.74-3.21,1.46-4.66.42-.85.91-1.65,1.46-2.41.39-.55.81-1.07,1.24-1.57,1.06-1.19,2.22-2.27,3.55-3.19.16-.11.37-.07.48.09.11.15.07.37-.08.48-1.53,1.24-2.9,2.76-3.98,4.46,1.71,1.56,2.75,6.02,2.75,6.02.71-.74.59-2.86.59-2.86,1.24,1.14,1.36,4.11,1.77,5.86.39,1.69,2.64,5.23,2.79,5.45-.45-.98-.16-5.27-.16-5.27,1.84,2.96,3.05,6.34,3.05,6.34.45-.76-.18-3.04-.18-3.04,2.33,2.45,3.28,8.35,3.58,10.73.51-.05,1.04.14,1.38.55.16.16.28.46.38.67.1.2.19.39.28.59-.08.04-.15.12-.18.22l-.33,1.16c-.03.11,0,.24.07.32.23.28.72.88.89,1.02.18.14.24,1.1.25,1.44,0,.08.03.15.09.22l.83.95c.05.05.07.11.09.18.06.37.26,1.65.43,1.67.17.02,1.22.94,1.51,1.2.05.05.08.1.1.17l.53,1.83c.02.06.05.12.1.16l.84.8c.1.09.22.12.32.09.06.12.12.25.18.37.41.82.82,1.64,1.23,2.46-.31.22-.68.48-.98.64-.1.06-.08.22.03.24.34.08.89.17,1.42.05.12.24.24.48.36.71h0c.36.42.84.93,1.38,1.43-.17.14-.34.27-.49.38-.1.07-.06.22.06.24.28.04.71.07,1.14-.01.65.52,1.37.98,2.08,1.24,1.64.6,3.32.7,4.84.55l-.81-2.83ZM143.03,60.43c-.38-.07-.66-.39-.67-.78-.01-.35-.3-.8-.78-1.23-.02-.02-.05-.04-.08-.06-.18-.13-.38-.16-.62-.21-.39-.07-.91-.17-1.33-.65l-.06-.07c-.49-.62-.4-1.29-.32-1.88.05-.39.11-.8.04-1.3-.08-.63-.32-1.24-.72-1.82-.24-.34-.18-.79.13-1.07.31-.27.77-.27,1.08,0,.99.86,2.06,1.53,3.18,1.99.17.07.34.13.5.19.66.24,1.29.48,1.68,1.04.08.13.14.25.19.38.1.27.3.81-1.31,4.97-.14.36-.51.57-.89.5ZM129.21,136.66c-3.57,1.27-7.14,2.54-10.71,3.81.86-2.05,2.4-5.18,5.1-8.37,3.38-4.01,7.09-6.35,10.99-8.79,4.8-2.99,9.6-5.24,9.48-5.5-.12-.26-4.64,2.53-6.06,1.2-1.9-1.78,2.81-10.02,4.11-12.31,2.39-4.18,5.07-7.67,4.62-8.07-.41-.36-2.46,2.61-4.62,2.2-2.34-.45-3.74-4.63-3.82-7.67-.06-2.63.85-4.88,1.94-6.62-.91-.67-1.72-1.47-2.33-2.13h0c-.14-.06-.27-.17-.33-.33-.01-.03-.03-.07-.04-.1l-.03-.03-.02.1c-.13.5-.3,1.13-.67,1.7-.03.19-.15.36-.35.44h0c-.61.64-1.6,1.12-3.29,1.08-.05,0-.09,0-.14,0-.25,1.77-.73,3.63-1.56,5.51-1.97,4.45-5.23,7.48-6.36,8.51-1.65,1.5-3.21,2.56-4.39,3.28-.3-1.63-.59-3.26-.89-4.88-.84,1.45-2.1,3.28-3.95,5.09-2.62,2.57-5.32,4.03-7.16,4.83.68-.67,1.8-1.98,2.48-3.94.51-1.45.59-2.73.58-3.59-1.38,2.3-2.82,3.78-3.85,4.7-1.55,1.38-2.51,1.76-4.18,3.23-1.77,1.56-2.94,3.11-3.62,4.11-1.21,1.37-3.11,1.77-4.59,1.03-1.72-.86-1.98-2.84-2-2.99-.96,1.11-1.05,2.74-.23,3.94.81,1.19,2.33,1.7,3.71,1.24-1.17,1.57-2.89,3.54-5.29,5.42-3.13,2.45-6.2,3.78-8.35,4.51.74-.51,2.01-1.52,3.03-3.23.98-1.65,1.28-3.19,1.38-4.07-1.2.73-2.95,1.93-4.78,3.71-4.39,4.29-4.58,7.53-7.29,11.2-2.99,4.06-7.44-1.67-14.33-2.19-6.1-.46-10.29-4.8-12.15-7.15-1.85.17-3.72.08-5.54-.34-1.41-.27-2.38-1.8-2.08-3.19.06-.29.11-.69.13-.99.13-3.62-.98-7.16-2.11-10.64-.96-2.81-2.05-5.59-3.28-8.29-.19-.39.4-.73.63-.31,2.1,4,3.97,8.13,5.32,12.47.67,2.2,1.22,4.51,1.19,6.86,0,.36-.06.87-.11,1.23-.05.37.14.78.46.94,2.06.5,4.23.38,6.32.03,2.67-1.46,5.52-3.18,8.48-5.22,4.39-3.03,8.07-6.12,11.09-8.97,1.42-1.03,2.69-1.44,3.59-1.61,2.4-.48,3.79.35,5.42-.52,1.06-.57,1.65-1.54,1.97-2.24-1-.69-2.15-1.2-3.18-1.65-.19-.07-.1-.37.1-.31,1.24.34,2.47.77,3.59,1.4.39-.42.81-.98,1.17-1.7.28-.56.45-1.08.57-1.53-.05-.04-.1-.08-.15-.12-.88-.71-1.94-1.28-3.02-1.61-.33-.08-.22-.59.11-.52,1.14.25,2.24.67,3.22,1.29.03-.42,0-.94-.21-1.47,0,0-.34-.92-1.3-1.64-1.41-1.05-6.53.42-12.72,3.75-4.01,2.7-8.01,5.4-12.02,8.09,2.49-4.38,3.57-8.3,4.09-10.88.82-4.12,1.8-8.96-.51-14.02-.79-1.73-1.79-3.11-2.75-4.18h0c-.4-.15-.81-.29-1.03-.38-10.73-3.31-18.75,5.22-23.51,13.9-1.75,3.16-3.24,6.51-4.38,9.94-.15.53-1.01.34-.85-.25.65-2.13,1.47-4.39,2.46-6.65l.52-12.08c-2.45.52-5.12,4.4-5.23,4.55.83-5.65,9.89-14.69,9.89-14.69-2.79-.37-8.04,7.01-8.04,7.01.45-4.01,3.03-7.09,6.81-9.55,3.77-2.46,9.49-8.92,9.49-8.92-2.65.17-7.85,4.2-7.85,4.2,1.66-4.9,14.22-11.42,14.22-11.42-1.51-1.17-7.02.99-7.02.99,0,0,3.85-4.45,9.42-5.98s6.6-4.31,6.6-4.31c-3.3-.53-4.6.38-4.9.64.66-.68,1.55-1.37,2.59-2.04-3.75-1.61-7.43-2.46-7.43-2.46,1.22-1.01,5.47-2.19,5.47-2.19-2.9-1.87-21.07,2.52-21.07,2.52.97-1.42,5.5-3.1,5.5-3.1-2.78-1.61-15.47,4.42-15.47,4.42,1.72-2.22,3.21-3.05,3.32-3.11-6.75.13-19.85,13.3-23.21,16.78-1.08,3.69-1.68,7.01-2.01,9.71l1.78-.83c.34,5.32-.57,9.16-1.52,11.75-.75,2.04-1.83,4.12-2.14,7.43-.22,2.4.06,4.43.34,5.8l3.78-4.87c-.01,1.59.03,4.13.38,7.23.34,2.98.78,4.91,2.32,11.96.35,1.6.97,4.42,1.75,8.06.44-1.13.87-2.27,1.31-3.4,1.4,1.86,2.2,3.5,2.66,4.62,1.3,3.16,1.18,5.18,2.9,8.37.62,1.15,1.25,2.02,1.66,2.54.13-.32.35-.95.29-1.76-.06-.77-.33-1.34-.5-1.63,1.75,1.63,3.67,6.87,8.75,9.28,10.12,2.32,7.3.13,11.64,2.1,9.18,4.16,9.52,9.27,22.99,19.76,3.13,2.44,5.8,4.25,7.47,5.35-.97-1.1-2.06-2.57-3.02-4.43-.54-1.03-.94-2.01-1.25-2.9,1.74,1.24,3.9,2.52,6.5,3.58,7.58,3.09,14.56,2.53,18.34,1.92-1.28-1-2.55-2.01-3.83-3.01,2.4.48,5.3.86,8.57.86,6,0,10.95-1.24,14.39-2.44-1.5-.71-3.01-1.42-4.51-2.13,2.26.16,4.98.08,7.95-.59,10.43-2.36,16.36-10.35,18.24-13.12ZM134.63,85.6c.28-.2.49-.49.63-.71.06-.1-.03-.23-.15-.19-.4.12-.96.21-1.24.26-.21-.2-.42-.43-.63-.67-.13-.14-.24-.29-.37-.45.66-.24,1.11-.87,1.33-1.24.06-.11-.03-.23-.15-.19-.72.22-1.94.4-1.94.4-.11-.16-.21-.33-.32-.49l.53-1.82s-.79-.98-1.01-1.16c-.22-.18-.25-1.57-.25-1.57l-.98-1.12s-.25-1.75-.44-1.78c-.19-.02-1.59-1.26-1.59-1.26l-.59-2.02-.78-.74c-.07-.48-.09-.97-.06-1.46.02-.34.06-.68.13-1.01-1.04,1.37-.7,2.34-.7,2.34.38,8.05,6.34,13.85,7.99,15.31.34-.04.63-.12.87-.22-.1-.06-.2-.13-.3-.2Z"/><path fill="#c4b1ff" d="M110.38,49.21c-3.3-3.3-10.3-4.79-14.27-5.4,1.74-3.01,2.47-6.5,2.68-9.98,1.11.4,3.65,3.28,4.08,3.77-.94-1.17-.06-3.28-.06-3.28,1.07,2.31,3.29,2.97,3.29,2.97.41-.76.08-1.42.08-1.42,2.29.78,3.74,4.22,3.81,4.36.09-.51-1.08-2.46-1.08-2.46,1.25.77,3.53,3.3,4.41,4.3-.55.76-1.04,1.56-1.46,2.41-.72,1.45-1.23,3.03-1.46,4.66,0,.02,0,.04-.01.06Z"/><path fill="#ff2e9a" d="M134.05,86.02c-.25.03-.54.04-.86.04-2.89-.07-5.48-3.04-6.84-5.19,0-.01-.01-.02-.02-.03-.24-.42-.43-.79-.59-1.09-2.08-3.97-1.19-5.44-3.38-9.48-1.53-2.84-2.98-3.96-4.63-5.91-1.81-2.12-5.13-10.36-5.23-10.7-1.12-3.91-.13-7.96,2-11.32,1.71,1.56,2.75,6.02,2.75,6.02.71-.74.59-2.86.59-2.86,1.24,1.14,1.36,4.11,1.77,5.86.39,1.69,2.64,5.23,2.79,5.45-.45-.98-.16-5.27-.16-5.27,1.84,2.96,3.05,6.34,3.05,6.34.45-.76-.18-3.04-.18-3.04,2.33,2.45,3.28,8.35,3.58,10.73-.33.03-.65.16-.91.38-.21.18-.38.44-.47.67-.25.56-.44,1.16-.56,1.76-1.04,1.37-.7,2.34-.7,2.34.38,8.05,6.34,13.85,7.99,15.31Z"/><path fill="#c4b1ff" d="M56.51,77.2h0c-12.65-3.02-21.35,8.05-26.13,19.01l.52-12.08c-2.45.52-5.12,4.4-5.23,4.55.83-5.65,9.89-14.69,9.89-14.69-2.79-.37-8.04,7.01-8.04,7.01.45-4.01,3.03-7.09,6.81-9.55,3.77-2.46,9.49-8.92,9.49-8.92-2.65.17-7.85,4.2-7.85,4.2,1.66-4.9,14.22-11.42,14.22-11.42-1.51-1.17-7.02.99-7.02.99,0,0,3.85-4.45,9.42-5.98s6.6-4.31,6.6-4.31c-3.3-.53-4.6.38-4.9.64.66-.68,1.55-1.37,2.59-2.04-3.75-1.61-7.43-2.46-7.43-2.46,1.22-1.01,5.47-2.19,5.47-2.19-2.9-1.87-21.07,2.52-21.07,2.52.97-1.42,5.5-3.1,5.5-3.1-2.78-1.61-15.47,4.42-15.47,4.42,1.72-2.22,3.21-3.05,3.32-3.11-6.75.13-19.85,13.3-23.21,16.78.63-2.14,1.42-4.42,2.42-6.78,1.1-2.6,2.31-4.95,3.54-7.06,5.4-5.19,14.22-12.84,19.35-12.94-.1.06-1.6.89-3.32,3.11,0,0,12.7-6.02,15.47-4.42,0,0-4.53,1.69-5.5,3.1,0,0,18.17-4.39,21.07-2.52,0,0-4.25,1.17-5.47,2.18,0,0,11.87,2.75,14.7,7.69,1.78-.75,3.04-1.22,3.12-1.25-.38.77-.8,1.51-1.27,2.25-.76,1.3-1.75,2.42-2.59,3.65-.93,1.57-.82,3.67.22,5.15.52.79,1.03,1.64,1.54,2.48l1.52,2.55c.05.09.11.18.16.26-.78,3.44-2.25,8.1-5.19,13.04-2.38,4.02-5.04,7.06-7.25,9.22Z"/></g></g></symbol></svg>
+
+<header class="barra">
+  <a class="marca" href="https://www.youtube.com/@bucledelycan" target="_blank" rel="noopener">
+    <svg class="lobo" aria-hidden="true"><use href="#lobo"/></svg>
+    <span><b>El carrito de lycan</b><small>// programa en Python · for, if y while</small></span>
+  </a>
+  <span class="esp"></span>
+  <button class="btn" id="b-niveles" type="button" aria-haspopup="dialog"><span id="b-niveles-txt">Nivel 1</span> <span class="estrellas-total" id="estrellas-total"></span></button>
+  <button class="btn icono" id="b-sonido" type="button" aria-pressed="true" title="Sonido" aria-label="Sonido">♪</button>
+</header>
+
+<main class="app">
+  <section class="col-mapa" aria-label="Mapa">
+    <div>
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1 id="titulo"></h1>
+      <p class="objetivo" id="objetivo"></p>
+    </div>
+    <div class="lycan" id="lycan" hidden>
+      <svg class="lobo" aria-hidden="true"><use href="#lobo"/></svg>
+      <p class="lycan-frase"><b>lycan dice:</b><span id="lycan-frase"></span></p>
+      <p class="lycan-pie">¿Tendrá razón? Pruébalo.</p>
+    </div>
+    <div class="pruebas" id="pruebas" role="tablist" aria-label="Pruebas"></div>
+    <div class="caja-mapa" id="caja-mapa">
+      <canvas id="mapa" role="img" aria-label="Mapa del nivel"></canvas>
+      <div class="aviso" id="aviso" hidden></div>
+    </div>
+    <p class="estado" id="estado"></p>
+  </section>
+
+  <section class="col-codigo" aria-label="Tu programa">
+    <div class="panel editor-panel">
+      <div class="pestana"><span class="archivo">programa.py</span><span class="lineas" id="lineas"></span></div>
+      <div class="editor">
+        <div class="numeros" id="numeros" aria-hidden="true"></div>
+        <div class="area" id="area">
+          <pre class="resaltado" id="resaltado" aria-hidden="true"></pre>
+          <textarea id="codigo" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Tu programa en Python"></textarea>
+        </div>
+      </div>
+      <div class="controles">
+        <button class="btn primario" id="b-ejecutar" type="button" title="Ctrl + Enter">▶ Ejecutar</button>
+        <button class="btn" id="b-paso" type="button">Paso a paso</button>
+        <button class="btn" id="b-reiniciar" type="button">↺ Reiniciar</button>
+        <div class="vel" id="vel" role="group" aria-label="Velocidad"></div>
+      </div>
+      <div class="paleta" id="paleta"></div>
+      <div class="consola" id="consola" aria-live="polite"></div>
+    </div>
+    <div class="extras">
+      <button class="btn texto" id="b-pista" type="button">Ver una pista</button>
+      <button class="btn texto" id="b-borrar" type="button">Volver al código inicial</button>
+    </div>
+    <p class="pista" id="pista" hidden></p>
+    <details class="panel ayuda" id="ayuda" open>
+      <summary>Lo que entiende el carrito</summary>
+      <dl id="funciones"></dl>
+    </details>
+  </section>
+</main>
+
+<div class="velo" id="velo-victoria" hidden><div class="modal" id="victoria" role="dialog" aria-modal="true" aria-labelledby="v-titulo"></div></div>
+<div class="velo" id="velo-niveles" hidden><div class="modal" id="niveles" role="dialog" aria-modal="true" aria-labelledby="n-titulo"></div></div>
+
+<script>
+'use strict';
+/* El carrito de lycan
+   1. Un intérprete de un pedazo de Python: tokenizar → Parser → generadores que avisan
+      cada línea y cada orden del carrito, para animarlas una por una.
+   2. El mundo del carrito (Mundo) y los niveles (NIVELES).
+   3. La interfaz: el mapa en canvas, el editor y la ejecución animada. */
+
+// =================== 1. intérprete ===================
+
+const PALABRAS = new Set(['if','elif','else','while','for','in','not','and','or','True','False','None','pass','break','continue',
+  'def','return','import','from','is','lambda','class','with','try','except','finally','raise','global','yield','del','assert','as','nonlocal','async','await']);
+const NO_HACEN_FALTA = new Set(['def','return','import','from','is','lambda','class','with','try','except','finally','raise','global','yield','del','assert','as','nonlocal','async','await']);
+
+class ErrorPy extends Error {
+  constructor(tipo, mensaje, linea, ayuda){ super(mensaje); this.tipo = tipo; this.linea = linea; this.ayuda = ayuda || ''; }
+}
+const errPy = (tipo, mensaje, linea, ayuda) => new ErrorPy(tipo, mensaje, linea, ayuda);
+
+function tokenizar(src){
+  const lineas = src.replace(/\r\n?/g, '\n').split('\n');
+  const toks = [], pila = [0], abiertos = [];
+  const pareja = {')':'(', ']':'['};
+  for (let i = 0; i < lineas.length; i++){
+    const nl = i + 1, s = lineas[i].replace(/\t/g, '    ');
+    let j = 0;
+    if (!abiertos.length){
+      const ind = s.match(/^ */)[0].length, resto = s.slice(ind);
+      if (resto === '' || resto[0] === '#') continue;
+      const tope = pila[pila.length - 1];
+      if (ind > tope){ pila.push(ind); toks.push({t:'INDENT', linea:nl}); }
+      else if (ind < tope){
+        while (ind < pila[pila.length - 1]){ pila.pop(); toks.push({t:'DEDENT', linea:nl}); }
+        if (ind !== pila[pila.length - 1]) throw errPy('IndentationError', 'unindent does not match any outer indentation level', nl,
+          'La sangría de esta línea no coincide con la de ninguna línea de arriba. Usa siempre bloques de 4 espacios.');
+      }
+      j = ind;
+    }
+    while (j < s.length){
+      const c = s[j];
+      if (c === ' '){ j++; continue; }
+      if (c === '#') break;
+      if (/[A-Za-z_À-ɏ]/.test(c)){
+        let k = j + 1;
+        while (k < s.length && /[\wÀ-ɏ]/.test(s[k])) k++;
+        const w = s.slice(j, k);
+        toks.push({t: PALABRAS.has(w) ? 'KW' : 'NAME', v:w, linea:nl});
+        j = k; continue;
+      }
+      if (/[0-9]/.test(c)){
+        let k = j;
+        while (k < s.length && /[0-9_]/.test(s[k])) k++;
+        if (s[k] === '.' && /[0-9]/.test(s[k + 1] || '')){ k++; while (k < s.length && /[0-9]/.test(s[k])) k++; }
+        if (k < s.length && /[A-Za-z_À-ɏ]/.test(s[k])) throw errPy('SyntaxError', 'invalid decimal literal', nl, 'Un nombre no puede empezar con un número.');
+        toks.push({t:'NUM', v:Number(s.slice(j, k).replace(/_/g, '')), linea:nl});
+        j = k; continue;
+      }
+      if (c === '"' || c === "'"){
+        let k = j + 1, txt = '';
+        while (k < s.length && s[k] !== c){
+          if (s[k] === '\\' && k + 1 < s.length){ const e = s[k + 1]; txt += e === 'n' ? '\n' : e === 't' ? '\t' : e; k += 2; }
+          else { txt += s[k]; k++; }
+        }
+        if (k >= s.length) throw errPy('SyntaxError', `unterminated string literal (detected at line ${nl})`, nl, `Falta cerrar el texto con ${c}.`);
+        toks.push({t:'STR', v:txt, linea:nl});
+        j = k + 1; continue;
+      }
+      const dos = s.slice(j, j + 2);
+      if (['==','!=','<=','>=','+=','-=','*=','//','**'].includes(dos)){ toks.push({t:'OP', v:dos, linea:nl}); j += 2; continue; }
+      if ('()[]:,=<>+-*/%.'.includes(c)){
+        if (c === '(' || c === '[') abiertos.push({c, linea:nl});
+        if (c === ')' || c === ']'){
+          const a = abiertos.pop();
+          if (!a) throw errPy('SyntaxError', `unmatched '${c}'`, nl, 'Sobra un paréntesis de cierre.');
+          if (a.c !== pareja[c]) throw errPy('SyntaxError', `closing parenthesis '${c}' does not match opening parenthesis '${a.c}'`, nl);
+        }
+        toks.push({t:'OP', v:c, linea:nl});
+        j++; continue;
+      }
+      if (c === '!') throw errPy('SyntaxError', 'invalid syntax', nl, 'En Python «distinto de» se escribe != y «no» se escribe not.');
+      if (c === '&' || c === '|') throw errPy('SyntaxError', 'invalid syntax', nl, 'En Python «y» se escribe and, y «o» se escribe or.');
+      if ('“”‘’«»'.includes(c)) throw errPy('SyntaxError', `invalid character '${c}' (U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')})`, nl, 'Esas comillas no son de Python: usa " o \' normales.');
+      throw errPy('SyntaxError', `invalid character '${c}' (U+${c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')})`, nl, 'Ese símbolo no existe en Python.');
+    }
+    if (!abiertos.length) toks.push({t:'NEWLINE', linea:nl});
+  }
+  if (abiertos.length){ const a = abiertos[abiertos.length - 1]; throw errPy('SyntaxError', `'${a.c}' was never closed`, a.linea, 'Falta cerrar un paréntesis.'); }
+  const ult = lineas.length;
+  while (pila.length > 1){ pila.pop(); toks.push({t:'DEDENT', linea:ult}); }
+  toks.push({t:'EOF', linea:ult});
+  return toks;
+}
+
+let idNodo = 0;
+class Parser {
+  constructor(toks){ this.k = toks; this.i = 0; this.bucles = 0; }
+  get ver(){ return this.k[this.i]; }
+  sig(){ return this.k[this.i++]; }
+  op(v){ const t = this.ver; return t.t === 'OP' && t.v === v; }
+  kw(v){ const t = this.ver; return t.t === 'KW' && t.v === v; }
+
+  programa(){
+    const cuerpo = [];
+    while (this.ver.t !== 'EOF'){
+      if (this.ver.t === 'INDENT') throw errPy('IndentationError', 'unexpected indent', this.ver.linea,
+        'Esta línea tiene sangría, pero no está dentro de un for, un while o un if. Quítale los espacios del principio.');
+      cuerpo.push(this.sentencia());
+    }
+    return cuerpo;
+  }
+  sentencia(){
+    const t = this.ver;
+    if (t.t === 'INDENT') throw errPy('IndentationError', 'unexpected indent', t.linea,
+      'Esta línea tiene más sangría que la de arriba, pero la de arriba no termina en dos puntos. Solo se agrega sangría después de un for, while, if, elif o else.');
+    if (t.t === 'KW'){
+      if (t.v === 'if') return this.si();
+      if (t.v === 'while') return this.mientras();
+      if (t.v === 'for') return this.para();
+      if (t.v === 'elif' || t.v === 'else') throw errPy('SyntaxError', 'invalid syntax', t.linea,
+        `${t.v} tiene que ir justo después del bloque de un if, con la misma sangría que ese if.`);
+      if (NO_HACEN_FALTA.has(t.v)) throw errPy('SyntaxError', 'invalid syntax', t.linea,
+        `En este juego no hace falta ${t.v}: alcanza con for, while, if, elif y else.`);
+    }
+    const s = this.simple();
+    this.finDeLinea();
+    return s;
+  }
+  finDeLinea(){
+    const t = this.ver;
+    if (t.t === 'NEWLINE'){ this.sig(); return; }
+    if (t.t === 'EOF' || t.t === 'DEDENT') return;
+    if (t.t === 'OP' && t.v === ':') throw errPy('SyntaxError', 'invalid syntax', t.linea,
+      'Estos dos puntos sobran: solo van al final de una línea con for, while, if, elif o else.');
+    throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Cada orden va en su propia línea.');
+  }
+  simple(){
+    const t = this.ver;
+    if (t.t === 'KW' && t.v === 'pass'){ this.sig(); return {tipo:'pass', linea:t.linea}; }
+    if (t.t === 'KW' && (t.v === 'break' || t.v === 'continue')){
+      this.sig();
+      if (!this.bucles) throw errPy('SyntaxError', `'${t.v}' outside loop`, t.linea, `${t.v} solo puede ir dentro de un for o un while.`);
+      return {tipo:t.v, linea:t.linea};
+    }
+    if (t.t === 'NAME'){
+      const s = this.k[this.i + 1];
+      if (s.t === 'OP' && ['=','+=','-=','*='].includes(s.v)){
+        this.sig(); this.sig();
+        if (this.ver.t === 'NEWLINE' || this.ver.t === 'EOF') throw errPy('SyntaxError', 'invalid syntax', t.linea, `Después del ${s.v} va el valor que quieres guardar.`);
+        return {tipo:'asig', nombre:t.v, op:s.v, expr:this.expr(), linea:t.linea};
+      }
+    }
+    const e = this.expr();
+    if (this.op('=')) throw errPy('SyntaxError', "cannot assign to function call here. Maybe you meant '==' instead of '='?", t.linea,
+      'Un solo = guarda un valor en una variable, y a su izquierda va el nombre de la variable. Para comparar se usa ==.');
+    return {tipo:'expr', expr:e, linea:t.linea};
+  }
+  dosPuntos(kw, linea){
+    if (this.op(':')){ this.sig(); return; }
+    if (this.op('=')) throw errPy('SyntaxError', "invalid syntax. Maybe you meant '==' or ':=' instead of '='?", linea,
+      'Para comparar se usan dos signos: ==. Un solo = es para guardar un valor en una variable.');
+    throw errPy('SyntaxError', "expected ':'", linea, `Al final de la línea del ${kw} van dos puntos (:).`);
+  }
+  bloque(kw, linea){
+    if (this.ver.t === 'NEWLINE'){
+      this.sig();
+      if (this.ver.t !== 'INDENT') throw errPy('IndentationError', `expected an indented block after '${kw}' statement on line ${linea}`,
+        this.ver.t === 'EOF' ? linea : this.ver.linea, `Las líneas que van dentro del ${kw} llevan 4 espacios más de sangría que el ${kw}.`);
+      this.sig();
+      const cuerpo = [];
+      while (this.ver.t !== 'DEDENT' && this.ver.t !== 'EOF') cuerpo.push(this.sentencia());
+      if (this.ver.t === 'DEDENT') this.sig();
+      return cuerpo;
+    }
+    if (this.ver.t === 'EOF') throw errPy('IndentationError', `expected an indented block after '${kw}' statement on line ${linea}`, linea,
+      `Debajo del ${kw} va al menos una línea con 4 espacios más de sangría.`);
+    const s = this.simple();
+    this.finDeLinea();
+    return [s];
+  }
+  condicion(kw, linea){
+    if (this.op(':') || this.ver.t === 'NEWLINE' || this.ver.t === 'EOF') throw errPy('SyntaxError', 'invalid syntax', linea,
+      `Después de ${kw} va una condición, por ejemplo: ${kw} hay_camino():`);
+    const e = this.expr();
+    if (this.op('=')) throw errPy('SyntaxError', "invalid syntax. Maybe you meant '==' or ':=' instead of '='?", linea,
+      'Para comparar se usan dos signos: ==. Un solo = es para guardar un valor en una variable.');
+    return e;
+  }
+  si(){
+    const t = this.sig(), ramas = [];
+    const c = this.condicion('if', t.linea);
+    this.dosPuntos('if', t.linea);
+    ramas.push({cond:c, cuerpo:this.bloque('if', t.linea), linea:t.linea});
+    let sino = null, lineaSino = 0;
+    for (;;){
+      if (this.kw('elif')){
+        const e = this.sig(), c2 = this.condicion('elif', e.linea);
+        this.dosPuntos('elif', e.linea);
+        ramas.push({cond:c2, cuerpo:this.bloque('elif', e.linea), linea:e.linea});
+        continue;
+      }
+      if (this.kw('else')){
+        const e = this.sig();
+        if (this.kw('if')) throw errPy('SyntaxError', "expected ':'", e.linea, 'En Python no se escribe else if: se escribe elif.');
+        this.dosPuntos('else', e.linea);
+        lineaSino = e.linea;
+        sino = this.bloque('else', e.linea);
+      }
+      break;
+    }
+    return {tipo:'if', ramas, sino, lineaSino, linea:t.linea};
+  }
+  mientras(){
+    const t = this.sig(), c = this.condicion('while', t.linea);
+    this.dosPuntos('while', t.linea);
+    this.bucles++;
+    const cuerpo = this.bloque('while', t.linea);
+    this.bucles--;
+    return {tipo:'while', cond:c, cuerpo, linea:t.linea};
+  }
+  para(){
+    const t = this.sig();
+    if (this.ver.t !== 'NAME') throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Un for se escribe así: for i in range(5):');
+    const nombre = this.sig().v;
+    if (!this.kw('in')) throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Falta in. Un for se escribe así: for i in range(5):');
+    this.sig();
+    if (this.op(':') || this.ver.t === 'NEWLINE') throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Después de in va lo que se recorre, por ejemplo range(5).');
+    const iter = this.expr();
+    this.dosPuntos('for', t.linea);
+    this.bucles++;
+    const cuerpo = this.bloque('for', t.linea);
+    this.bucles--;
+    return {tipo:'for', nombre, iter, cuerpo, linea:t.linea};
+  }
+  expr(){ return this.o(); }
+  o(){ let a = this.y(); while (this.kw('or')){ const t = this.sig(); a = {tipo:'or', a, b:this.y(), linea:t.linea}; } return a; }
+  y(){ let a = this.no(); while (this.kw('and')){ const t = this.sig(); a = {tipo:'and', a, b:this.no(), linea:t.linea}; } return a; }
+  no(){ if (this.kw('not')){ const t = this.sig(); return {tipo:'not', a:this.no(), linea:t.linea}; } return this.comp(); }
+  comp(){
+    const a = this.suma(), ops = [];
+    let linea = 0;
+    while (this.ver.t === 'OP' && ['==','!=','<','>','<=','>='].includes(this.ver.v)){ const t = this.sig(); linea = t.linea; ops.push([t.v, this.suma()]); }
+    return ops.length ? {tipo:'cmp', a, ops, linea} : a;
+  }
+  suma(){ let a = this.term(); while (this.op('+') || this.op('-')){ const t = this.sig(); a = {tipo:'bin', o:t.v, a, b:this.term(), linea:t.linea}; } return a; }
+  term(){ let a = this.unario(); while (this.op('*') || this.op('/') || this.op('//') || this.op('%')){ const t = this.sig(); a = {tipo:'bin', o:t.v, a, b:this.unario(), linea:t.linea}; } return a; }
+  unario(){
+    if (this.op('-')){ const t = this.sig(); return {tipo:'neg', a:this.unario(), linea:t.linea}; }
+    if (this.op('+')){ this.sig(); return this.unario(); }
+    const a = this.primario();
+    if (this.op('**')){ const t = this.sig(); return {tipo:'bin', o:'**', a, b:this.unario(), linea:t.linea}; }
+    return a;
+  }
+  primario(){
+    const t = this.sig();
+    let n;
+    if (t.t === 'NUM' || t.t === 'STR') n = {tipo:'const', v:t.v};
+    else if (t.t === 'KW' && t.v === 'True') n = {tipo:'const', v:true};
+    else if (t.t === 'KW' && t.v === 'False') n = {tipo:'const', v:false};
+    else if (t.t === 'KW' && t.v === 'None') n = {tipo:'const', v:null};
+    else if (t.t === 'NAME') n = {tipo:'nombre', n:t.v, linea:t.linea};
+    else if (t.t === 'OP' && t.v === '('){ n = this.expr(); if (!this.op(')')) throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Falta cerrar el paréntesis.'); this.sig(); }
+    else if (t.t === 'NEWLINE' || t.t === 'EOF') throw errPy('SyntaxError', 'invalid syntax', t.linea, 'La línea quedó incompleta.');
+    else throw errPy('SyntaxError', 'invalid syntax', t.linea, t.t === 'KW' ? `${t.v} no puede ir en esa parte de la línea.` : '');
+    while (this.op('(')){
+      const p = this.sig(), args = [];
+      while (!this.op(')')){
+        args.push(this.expr());
+        if (this.op(',')){ this.sig(); continue; }
+        if (!this.op(')')) throw errPy('SyntaxError', 'invalid syntax. Perhaps you forgot a comma?', p.linea, 'Entre los valores que van dentro de los paréntesis va una coma.');
+      }
+      this.sig();
+      n = {tipo:'llamada', f:n, args, linea:p.linea, id:++idNodo};
+    }
+    return n;
+  }
+}
+function parsear(src){ return new Parser(tokenizar(src)).programa(); }
+
+// ---------- valores ----------
+const ROMPER = {romper:true}, SEGUIR = {seguir:true};
+class Rango {
+  constructor(a, b, p){ this.a = a; this.b = b; this.p = p; }
+  get largo(){ return Math.max(0, Math.ceil((this.b - this.a) / this.p)); }
+  *[Symbol.iterator](){ for (let i = 0, x = this.a; i < this.largo; i++, x += this.p) yield x; }
+}
+class FuncPy { constructor(nombre, clase, fn){ this.nombre = nombre; this.clase = clase; this.fn = fn; } }
+
+function tipoPy(v){
+  if (v === null || v === undefined) return 'NoneType';
+  if (v === true || v === false) return 'bool';
+  if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float';
+  if (typeof v === 'string') return 'str';
+  if (v instanceof Rango) return 'range';
+  if (v instanceof FuncPy) return v.clase === 'nativa' ? 'builtin_function_or_method' : 'function';
+  return 'object';
+}
+function verdad(v){
+  if (v === null || v === undefined || v === false || v === 0 || v === '') return false;
+  if (v instanceof Rango) return v.largo > 0;
+  return true;
+}
+function strPy(v){
+  if (v === null || v === undefined) return 'None';
+  if (v === true) return 'True';
+  if (v === false) return 'False';
+  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : (v > 0 ? 'inf' : '-inf');
+  if (typeof v === 'string') return v;
+  if (v instanceof Rango) return v.p === 1 ? `range(${v.a}, ${v.b})` : `range(${v.a}, ${v.b}, ${v.p})`;
+  if (v instanceof FuncPy) return `<function ${v.nombre}>`;
+  return String(v);
+}
+const esNum = v => typeof v === 'number' || typeof v === 'boolean';
+
+function binaria(o, a, b, linea){
+  const noSe = () => errPy('TypeError', `unsupported operand type(s) for ${o}: '${tipoPy(a)}' and '${tipoPy(b)}'`, linea,
+    typeof a === 'string' || typeof b === 'string' ? 'Python no mezcla texto con números en una operación.' : '');
+  if (o === '+'){
+    if (esNum(a) && esNum(b)) return +a + +b;
+    if (typeof a === 'string' && typeof b === 'string') return a + b;
+    throw noSe();
+  }
+  if (o === '*'){
+    if (esNum(a) && esNum(b)) return a * b;
+    if (typeof a === 'string' && typeof b === 'number' && Number.isInteger(b)) return a.repeat(Math.max(0, b));
+    if (typeof b === 'string' && typeof a === 'number' && Number.isInteger(a)) return b.repeat(Math.max(0, a));
+    throw noSe();
+  }
+  if (!esNum(a) || !esNum(b)) throw noSe();
+  a = +a; b = +b;
+  switch (o){
+    case '-': return a - b;
+    case '/': if (b === 0) throw errPy('ZeroDivisionError', 'division by zero', linea, 'No se puede dividir entre cero.'); return a / b;
+    case '//': if (b === 0) throw errPy('ZeroDivisionError', 'integer division or modulo by zero', linea, 'No se puede dividir entre cero.'); return Math.floor(a / b);
+    case '%': if (b === 0) throw errPy('ZeroDivisionError', 'integer modulo by zero', linea, 'No se puede dividir entre cero.'); return ((a % b) + b) % b;
+    case '**': return a ** b;
+  }
+  throw noSe();
+}
+function comparar(o, a, b, linea){
+  if (o === '==' || o === '!='){
+    let igual;
+    if (esNum(a) && esNum(b)) igual = +a === +b;
+    else igual = a === b;
+    return o === '==' ? igual : !igual;
+  }
+  const ok = (esNum(a) && esNum(b)) || (typeof a === 'string' && typeof b === 'string');
+  if (!ok) throw errPy('TypeError', `'${o}' not supported between instances of '${tipoPy(a)}' and '${tipoPy(b)}'`, linea,
+    typeof a === 'string' || typeof b === 'string' ? 'Python no compara texto con números (lo vimos en el ep. 003).' : '');
+  if (esNum(a)){ a = +a; b = +b; }
+  switch (o){ case '<': return a < b; case '>': return a > b; case '<=': return a <= b; case '>=': return a >= b; }
+}
+
+// ---------- funciones que entiende el programa ----------
+const ACCIONES = ['avanzar','girar_izquierda','girar_derecha','esperar','recoger'];
+const SENSORES = ['hay_camino','hay_camino_izquierda','hay_camino_derecha','hay_paquete','semaforo_en_rojo','en_la_meta'];
+function enteroPy(v, linea){
+  if (v === true || v === false) return +v;
+  if (typeof v === 'number' && Number.isInteger(v)) return v;
+  throw errPy('TypeError', `'${tipoPy(v)}' object cannot be interpreted as an integer`, linea, 'range() solo acepta números enteros.');
+}
+const NATIVAS = {
+  *print(args){ yield {tipo:'print', texto:args.map(strPy).join(' ')}; return null; },
+  *range(args, linea){
+    if (!args.length) throw errPy('TypeError', 'range expected at least 1 argument, got 0', linea, 'Dentro de range() va cuántas veces repetir, por ejemplo range(5).');
+    if (args.length > 3) throw errPy('TypeError', `range expected at most 3 arguments, got ${args.length}`, linea);
+    const n = args.map(a => enteroPy(a, linea));
+    const [a, b, p] = n.length === 1 ? [0, n[0], 1] : [n[0], n[1], n.length === 3 ? n[2] : 1];
+    if (p === 0) throw errPy('ValueError', 'range() arg 3 must not be zero', linea);
+    return new Rango(a, b, p);
+  },
+  *int(args, linea){
+    const v = args[0];
+    if (typeof v === 'string'){
+      if (!/^\s*[-+]?\d+\s*$/.test(v)) throw errPy('ValueError', `invalid literal for int() with base 10: '${v}'`, linea, 'int() solo sabe convertir texto que tenga cifras (como en el ep. 003).');
+      return parseInt(v, 10);
+    }
+    if (esNum(v)) return Math.trunc(+v);
+    throw errPy('TypeError', `int() argument must be a string or a real number, not '${tipoPy(v)}'`, linea);
+  },
+  *str(args){ return strPy(args[0] ?? ''); },
+  *abs(args, linea){ if (!esNum(args[0])) throw errPy('TypeError', `bad operand type for abs(): '${tipoPy(args[0])}'`, linea); return Math.abs(+args[0]); },
+  *len(args, linea){
+    const v = args[0];
+    if (typeof v === 'string') return v.length;
+    if (v instanceof Rango) return v.largo;
+    throw errPy('TypeError', `object of type '${tipoPy(v)}' has no len()`, linea);
+  },
+};
+const GLOBALES = Object.create(null);
+for (const n of ACCIONES) GLOBALES[n] = new FuncPy(n, 'accion');
+for (const n of SENSORES) GLOBALES[n] = new FuncPy(n, 'sensor');
+for (const n in NATIVAS) GLOBALES[n] = new FuncPy(n, 'nativa', NATIVAS[n]);
+
+function distancia(a, b){
+  const d = Array.from({length:a.length + 1}, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function buscar(nombre, linea, ctx){
+  if (nombre in ctx.vars) return ctx.vars[nombre];
+  if (nombre in GLOBALES) return GLOBALES[nombre];
+  const candidatos = [...Object.keys(ctx.vars), ...Object.keys(GLOBALES), 'True', 'False', 'None'];
+  let mejor = null, dm = Infinity;
+  for (const c of candidatos){
+    const d = c.toLowerCase() === nombre.toLowerCase() ? 0 : distancia(nombre, c);
+    if (d < dm){ dm = d; mejor = c; }
+  }
+  const tope = Math.max(1, Math.min(3, Math.floor(nombre.length / 3)));
+  if (mejor && dm <= tope) throw errPy('NameError', `name '${nombre}' is not defined. Did you mean: '${mejor}'?`, linea,
+    `Python no conoce ${nombre}. ¿Quisiste decir ${mejor}? Las mayúsculas, las tildes y cada letra cuentan.`);
+  throw errPy('NameError', `name '${nombre}' is not defined`, linea,
+    `Python no conoce ${nombre}: no es una función del carrito ni una variable que hayas creado antes.`);
+}
+
+function nuevoCtx(mundo){ return {mundo, vars:Object.create(null), pasos:0, limite:20000, iter:[], avisos:new Map()}; }
+function contarPaso(ctx, linea){
+  if (++ctx.pasos > ctx.limite) throw errPy('BucleInfinito', `tu programa lleva ${ctx.limite.toLocaleString('es')} pasos sin terminar`, linea,
+    'Un while cuya condición nunca deja de cumplirse se repite para siempre. Revisa que alguna vez sea False.');
+}
+
+function* evaluar(n, ctx){
+  switch (n.tipo){
+    case 'const': return n.v;
+    case 'nombre': {
+      const v = buscar(n.n, n.linea, ctx);
+      if (v instanceof FuncPy && v.clase !== 'nativa' && !ctx.avisos.has(n.n)) ctx.avisos.set(n.n, n.linea);
+      return v;
+    }
+    case 'llamada': {
+      const f = n.f.tipo === 'nombre' ? buscar(n.f.n, n.linea, ctx) : yield* evaluar(n.f, ctx);
+      const args = [];
+      for (const a of n.args) args.push(yield* evaluar(a, ctx));
+      if (!(f instanceof FuncPy)) throw errPy('TypeError', `'${tipoPy(f)}' object is not callable`, n.linea,
+        'Los paréntesis después de un nombre sirven para llamar a una función, y eso no es una función.');
+      if (f.clase === 'accion' || f.clase === 'sensor'){
+        if (args.length) throw errPy('TypeError', `${f.nombre}() takes 0 positional arguments but ${args.length} ${args.length === 1 ? 'was' : 'were'} given`, n.linea,
+          f.clase === 'accion' ? `${f.nombre}() va con los paréntesis vacíos. Para repetirla, usa un for.` : `${f.nombre}() va con los paréntesis vacíos.`);
+        if (f.clase === 'sensor') return ctx.mundo.sensor(f.nombre);
+        yield {tipo:'accion', nombre:f.nombre, linea:n.linea, id:n.id};
+        return null;
+      }
+      return yield* f.fn(args, n.linea, ctx);
+    }
+    case 'not': return !verdad(yield* evaluar(n.a, ctx));
+    case 'and': { const a = yield* evaluar(n.a, ctx); return verdad(a) ? yield* evaluar(n.b, ctx) : a; }
+    case 'or': { const a = yield* evaluar(n.a, ctx); return verdad(a) ? a : yield* evaluar(n.b, ctx); }
+    case 'neg': {
+      const a = yield* evaluar(n.a, ctx);
+      if (!esNum(a)) throw errPy('TypeError', `bad operand type for unary -: '${tipoPy(a)}'`, n.linea);
+      return -a;
+    }
+    case 'bin': { const a = yield* evaluar(n.a, ctx), b = yield* evaluar(n.b, ctx); return binaria(n.o, a, b, n.linea); }
+    case 'cmp': {
+      let a = yield* evaluar(n.a, ctx);
+      for (const [o, bn] of n.ops){ const b = yield* evaluar(bn, ctx); if (!comparar(o, a, b, n.linea)) return false; a = b; }
+      return true;
+    }
+  }
+}
+function* ejecutarBloque(cuerpo, ctx){ for (const s of cuerpo) yield* ejecutarSentencia(s, ctx); }
+function* ejecutarSentencia(s, ctx){
+  contarPaso(ctx, s.linea);
+  switch (s.tipo){
+    case 'expr': {
+      yield {tipo:'linea', linea:s.linea};
+      const v = yield* evaluar(s.expr, ctx);
+      if (s.expr.tipo === 'nombre' && v instanceof FuncPy) throw errPy('Ojo', `${s.expr.n} sin paréntesis no hace nada`, s.linea,
+        `Para que la orden se cumpla, escribe ${s.expr.n}() con los paréntesis. Sin ellos Python solo nombra la función, no la llama.`);
+      return;
+    }
+    case 'asig': {
+      yield {tipo:'linea', linea:s.linea};
+      let v = yield* evaluar(s.expr, ctx);
+      if (s.op !== '=') v = binaria(s.op[0], buscar(s.nombre, s.linea, ctx), v, s.linea);
+      ctx.vars[s.nombre] = v;
+      return;
+    }
+    case 'pass': yield {tipo:'linea', linea:s.linea}; return;
+    case 'break': yield {tipo:'linea', linea:s.linea}; throw ROMPER;
+    case 'continue': yield {tipo:'linea', linea:s.linea}; throw SEGUIR;
+    case 'if': {
+      for (const r of s.ramas){
+        yield {tipo:'linea', linea:r.linea};
+        if (verdad(yield* evaluar(r.cond, ctx))){ yield* ejecutarBloque(r.cuerpo, ctx); return; }
+      }
+      if (s.sino){ yield {tipo:'linea', linea:s.lineaSino}; yield* ejecutarBloque(s.sino, ctx); }
+      return;
+    }
+    case 'while': {
+      for (;;){
+        yield {tipo:'linea', linea:s.linea};
+        if (!verdad(yield* evaluar(s.cond, ctx))) return;
+        try { yield* ejecutarBloque(s.cuerpo, ctx); }
+        catch (e){ if (e === ROMPER) return; if (e !== SEGUIR) throw e; }
+        contarPaso(ctx, s.linea);
+      }
+    }
+    case 'for': {
+      yield {tipo:'linea', linea:s.linea};
+      const it = yield* evaluar(s.iter, ctx);
+      if (!(it instanceof Rango) && typeof it !== 'string') throw errPy('TypeError', `'${tipoPy(it)}' object is not iterable`, s.linea,
+        typeof it === 'number' ? `Para repetir ${it} veces se escribe: for ${s.nombre} in range(${it}):` : 'Después de in va algo que se pueda recorrer, como range(5).');
+      ctx.iter.push(0);
+      try {
+        let k = 0;
+        for (const x of it){
+          if (k > 0){ yield {tipo:'linea', linea:s.linea}; contarPaso(ctx, s.linea); }
+          ctx.iter[ctx.iter.length - 1] = k++;
+          ctx.vars[s.nombre] = x;
+          try { yield* ejecutarBloque(s.cuerpo, ctx); }
+          catch (e){ if (e === ROMPER) return; if (e !== SEGUIR) throw e; }
+        }
+      } finally { ctx.iter.pop(); }
+      return;
+    }
+  }
+}
+
+// =================== 2. el mundo y los niveles ===================
+
+const DIRS = [[1,0],[0,1],[-1,0],[0,-1]];          // este, sur, oeste, norte
+const DIR_CARRO = {'>':0, 'v':1, '<':2, '^':3};
+
+class Mundo {
+  constructor(p){
+    this.h = p.mapa.length;
+    this.w = Math.max(...p.mapa.map(f => f.length));
+    this.celdas = []; this.paquetes = new Set(); this.controles = new Set(); this.semaforos = new Map();
+    this.meta = null; this.carro = null;
+    let iSem = 0;
+    for (let y = 0; y < this.h; y++){
+      const fila = [];
+      for (let x = 0; x < this.w; x++){
+        const c = p.mapa[y][x] || '#', k = x + ',' + y;
+        if (c === '#' || c === '*'){ fila.push(c); continue; }
+        fila.push(c === 'S' ? 'S' : '.');
+        if (c === 'M') this.meta = {x, y};
+        else if (c === 'P') this.paquetes.add(k);
+        else if (c === 'C') this.controles.add(k);
+        else if (c === 'S') this.semaforos.set(k, (p.semaforos || [])[iSem++] || {rojo:0, fijo:true});
+        else if (c in DIR_CARRO) this.carro = {x, y, d:DIR_CARRO[c]};
+      }
+      this.celdas.push(fila);
+    }
+    if (p.metaEnSalida) this.meta = {x:this.carro.x, y:this.carro.y};
+    this.totalPaquetes = this.paquetes.size;
+    this.totalControles = this.controles.size;
+    this.t = 0;
+  }
+  dentro(x, y){ return x >= 0 && y >= 0 && x < this.w && y < this.h; }
+  libre(x, y){ return this.dentro(x, y) && this.celdas[y][x] !== '#' && this.celdas[y][x] !== '*'; }
+  rojo(x, y, t = this.t){
+    const s = this.semaforos.get(x + ',' + y);
+    if (!s || !s.rojo) return false;
+    if (s.fijo) return t < s.rojo;
+    return (t + s.fase) % (s.rojo + s.verde) < s.rojo;
+  }
+  // En qué parte de su ciclo va cada semáforo: con lo demás igual, el futuro también es igual.
+  fasesSemaforos(){
+    return [...this.semaforos.values()].map(s => s.fijo ? (this.t < s.rojo ? this.t : '-') : (this.t + s.fase) % (s.rojo + s.verde)).join(',');
+  }
+  vecino(giro){ const [dx, dy] = DIRS[(this.carro.d + giro + 4) % 4]; return [this.carro.x + dx, this.carro.y + dy]; }
+  enMeta(){ return this.carro.x === this.meta.x && this.carro.y === this.meta.y; }
+  sensor(n){
+    const c = this.carro;
+    switch (n){
+      case 'hay_camino': return this.libre(...this.vecino(0));
+      case 'hay_camino_izquierda': return this.libre(...this.vecino(-1));
+      case 'hay_camino_derecha': return this.libre(...this.vecino(1));
+      case 'hay_paquete': return this.paquetes.has(c.x + ',' + c.y);
+      case 'semaforo_en_rojo': return this.rojo(...this.vecino(0));
+      case 'en_la_meta': return this.enMeta();
+    }
+  }
+  aplicar(n){
+    const c = this.carro;
+    switch (n){
+      case 'avanzar': {
+        const [x, y] = this.vecino(0), [dx, dy] = DIRS[c.d];
+        if (!this.libre(x, y)){ this.t++; return {anim:{tipo:'choque', dx, dy}, falla:'choque'}; }
+        const enRojo = this.rojo(x, y), de = [c.x, c.y];
+        c.x = x; c.y = y; this.t++;
+        this.controles.delete(x + ',' + y);
+        return {anim:{tipo:'mover', de, a:[x, y]}, falla:enRojo ? 'rojo' : null};
+      }
+      case 'girar_izquierda': c.d = (c.d + 3) % 4; this.t++; return {anim:{tipo:'girar', sentido:-1}};
+      case 'girar_derecha': c.d = (c.d + 1) % 4; this.t++; return {anim:{tipo:'girar', sentido:1}};
+      case 'esperar': this.t++; return {anim:{tipo:'esperar'}};
+      case 'recoger': {
+        this.t++;
+        const k = c.x + ',' + c.y;
+        if (!this.paquetes.has(k)) return {anim:{tipo:'nada'}, falla:'sinPaquete'};
+        this.paquetes.delete(k);
+        return {anim:{tipo:'recoger', x:c.x, y:c.y}};
+      }
+    }
+  }
+}
+// El mismo punto del programa, con las mismas variables y el carrito igual: desde ahí se repite para siempre.
+function claveEstado(ev, ctx, m){
+  return [ev.id, ctx.iter.join(','), JSON.stringify(ctx.vars), m.carro.x, m.carro.y, m.carro.d, m.fasesSemaforos(), m.paquetes.size, m.controles.size].join('|');
+}
+function resultadoFinal(m){
+  if (!m.enMeta()) return {ok:false, falla:'noLlego'};
+  if (m.paquetes.size) return {ok:false, falla:'faltanPaquetes', n:m.paquetes.size};
+  if (m.controles.size) return {ok:false, falla:'faltanControles', n:m.controles.size};
+  return {ok:true};
+}
+// Sin animación: para saber cuánto tarda la solución y para revisar los niveles.
+function simular(ast, prueba, tope = 5000){
+  const m = new Mundo(prueba), ctx = nuevoCtx(m), gen = ejecutarBloque(ast, ctx), vistos = new Set();
+  try {
+    for (;;){
+      const r = gen.next();
+      if (r.done) break;
+      const ev = r.value;
+      if (ev.tipo !== 'accion') continue;
+      const k = claveEstado(ev, ctx, m);
+      if (vistos.has(k)) return {ok:false, falla:'bucle', linea:ev.linea, t:m.t};
+      vistos.add(k);
+      const res = m.aplicar(ev.nombre);
+      if (res.falla) return {ok:false, falla:res.falla, linea:ev.linea, t:m.t};
+      if (m.t > tope) return {ok:false, falla:'gasolina', linea:ev.linea, t:m.t};
+    }
+  } catch (e){
+    if (e instanceof ErrorPy) return {ok:false, falla:'python', error:e, t:m.t};
+    throw e;
+  }
+  return {...resultadoFinal(m), t:m.t};
+}
+
+// ---------- mapas ----------
+function azar(semilla){
+  let a = semilla >>> 0;
+  return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const lienzo = (w, h) => Array.from({length:h}, () => Array(w).fill('#'));
+const aTexto = g => g.map(f => f.join(''));
+function parques(g, rnd, n){
+  for (let k = 0; k < n; k++){
+    const y = Math.floor(rnd() * g.length), x = Math.floor(rnd() * g[0].length);
+    if (g[y][x] === '#') g[y][x] = '*';
+  }
+}
+// Calle recta de este a oeste: el carrito en x = 1 y la meta `largo` casillas más allá.
+function calleRecta(largo, ancho, semilla, {paquetes = [], semaforos = []} = {}){
+  const g = lienzo(ancho, 5), y = 2;
+  g[y][1] = '>';
+  for (let x = 2; x <= largo + 1; x++) g[y][x] = '.';
+  g[y][largo + 1] = 'M';
+  paquetes.forEach(x => g[y][x] = 'P');
+  semaforos.forEach(x => g[y][x] = 'S');
+  parques(g, azar(semilla), Math.round(ancho / 3));
+  return aTexto(g);
+}
+// Una calle con curvas que nunca se toca a sí misma: en cada casilla hay un solo camino.
+function caminoCurvo(semilla, w, h, largo){
+  for (let n = 0; n < 4000; n++){
+    const rnd = azar(semilla * 7919 + n);
+    const sy = 1 + Math.floor(rnd() * (h - 2));
+    const cam = [[1, sy]], usado = new Set(['1,' + sy]);
+    let d = 0, recto = 2, muerto = false;
+    while (cam.length < largo){
+      const lado = rnd() < 0.5 ? 1 : -1;
+      const orden = recto < 2 || rnd() < 0.5 ? [0, lado, -lado] : [lado, 0, -lado];
+      let ok = false;
+      for (const giro of orden){
+        const nd = (d + giro + 4) % 4, [dx, dy] = DIRS[nd], [x, y] = cam[cam.length - 1], nx = x + dx, ny = y + dy;
+        if (nx < 1 || ny < 1 || nx > w - 2 || ny > h - 2 || usado.has(nx + ',' + ny)) continue;
+        if (DIRS.some(([ex, ey]) => !(nx + ex === x && ny + ey === y) && usado.has((nx + ex) + ',' + (ny + ey)))) continue;
+        cam.push([nx, ny]); usado.add(nx + ',' + ny);
+        recto = giro === 0 ? recto + 1 : 0; d = nd; ok = true;
+        break;
+      }
+      if (!ok){ muerto = true; break; }
+    }
+    if (muerto) continue;
+    let giros = 0;
+    for (let i = 1; i < cam.length - 1; i++){
+      const [a, b, c] = [cam[i - 1], cam[i], cam[i + 1]];
+      if (b[0] - a[0] !== c[0] - b[0] || b[1] - a[1] !== c[1] - b[1]) giros++;
+    }
+    if (giros >= 5) return cam;
+  }
+  throw new Error('No salió el camino ' + semilla);
+}
+function esRecta(cam, i){ const [a, b, c] = [cam[i - 1], cam[i], cam[i + 1]]; return b[0] - a[0] === c[0] - b[0] && b[1] - a[1] === c[1] - b[1]; }
+function calleCurva(semilla, w, h, largo, {paquetes = 0, semaforos = 0} = {}){
+  const cam = caminoCurvo(semilla, w, h, largo), rnd = azar(semilla * 31 + 7), g = lienzo(w, h);
+  cam.forEach(([x, y]) => g[y][x] = '.');
+  const [x0, y0] = cam[0], [x1, y1] = cam[1];
+  g[y0][x0] = '>v<^'[DIRS.findIndex(([dx, dy]) => dx === x1 - x0 && dy === y1 - y0)];
+  const [xf, yf] = cam[cam.length - 1];
+  g[yf][xf] = 'M';
+  const tomados = new Set(), sems = [];
+  const elegir = (cands, n, sep) => {
+    const elegidos = [];
+    for (let k = 0; k < 200 && elegidos.length < n; k++){
+      const i = cands[Math.floor(rnd() * cands.length)];
+      if (i === undefined || tomados.has(i) || elegidos.some(j => Math.abs(j - i) < sep)) continue;
+      elegidos.push(i); tomados.add(i);
+    }
+    return elegidos;
+  };
+  const candS = [];
+  for (let i = 3; i < cam.length - 2; i++) if (esRecta(cam, i)) candS.push(i);
+  for (const i of elegir(candS, semaforos, 4)){
+    const [x, y] = cam[i]; g[y][x] = 'S';
+    const rojo = 2 + Math.floor(rnd() * 3), verde = 2 + Math.floor(rnd() * 3);
+    sems.push({rojo, verde, fase:Math.floor(rnd() * (rojo + verde))});
+  }
+  const candP = [];
+  for (let i = 2; i < cam.length - 1; i++) candP.push(i);
+  for (const i of elegir(candP, paquetes, 2)){ const [x, y] = cam[i]; g[y][x] = 'P'; }
+  parques(g, rnd, Math.round(w * h * 0.05));
+  return {mapa:aTexto(g), semaforos:sems};
+}
+// Laberinto perfecto (sin ciclos), tallado con una búsqueda en profundidad.
+function laberinto(semilla, cw, ch){
+  const rnd = azar(semilla), g = lienzo(2 * cw + 1, 2 * ch + 1), visto = new Set([`0,${ch - 1}`]), pila = [[0, ch - 1]];
+  g[2 * ch - 1][1] = '.';
+  while (pila.length){
+    const [cx, cy] = pila[pila.length - 1];
+    const vec = DIRS.map(([dx, dy]) => [cx + dx, cy + dy, dx, dy]).filter(([x, y]) => x >= 0 && y >= 0 && x < cw && y < ch && !visto.has(x + ',' + y));
+    if (!vec.length){ pila.pop(); continue; }
+    const [nx, ny, dx, dy] = vec[Math.floor(rnd() * vec.length)];
+    g[2 * cy + 1 + dy][2 * cx + 1 + dx] = '.';
+    g[2 * ny + 1][2 * nx + 1] = '.';
+    visto.add(nx + ',' + ny);
+    pila.push([nx, ny]);
+  }
+  g[2 * ch - 1][1] = '^';
+  g[1][2 * cw - 1] = 'M';
+  parques(g, rnd, 10);
+  return {mapa:aTexto(g)};
+}
+
+// ---------- niveles ----------
+// Cada nivel: sus pruebas (el mismo programa tiene que pasarlas todas), el código con que empieza,
+// las piezas de la paleta, la solución de referencia y, a veces, la idea equivocada de lycan
+// con un programa que la sigue (`lycanCodigo`), que tiene que fallar en alguna prueba.
+const SECCIONES = {
+  secuencia:'secuencia',
+  for:'for · repetir n veces',
+  if:'if · elif · else',
+  while:'while · repetir mientras',
+  todo:'todo junto',
+};
+const EP = {
+  e001:'ep. 001 · ¿Qué es un algoritmo?',
+  e002:'ep. 002 · Pseudocódigo y diagramas de flujo',
+  e003:'ep. 003 · De pseudocódigo a Python',
+  e026:'ep. 026 · Backtracking',
+};
+const NIVELES = [
+  {
+    id:'primera-calle', sec:'secuencia', titulo:'Primera calle', curso:EP.e001,
+    objetivo:'Lleva el carrito hasta la meta. `avanzar()` lo mueve una casilla hacia donde mira.',
+    pruebas:() => [{mapa:[
+      '#########',
+      '##*###*##',
+      '#>....M##',
+      '#########',
+      '###*#####']}],
+    inicial:'# Cada línea es una orden. Python las hace de arriba abajo.\navanzar()\n',
+    paleta:['avanzar'], metaLineas:5,
+    solucion:'avanzar()\navanzar()\navanzar()\navanzar()\navanzar()\n',
+    pista:'Cuenta las casillas que hay entre el carrito y la meta: va un `avanzar()` por cada una, cada uno en su línea.',
+    aprende:'Un programa es una lista de órdenes. Python las ejecuta una por una, de arriba abajo. Los paréntesis de `avanzar()` son los que hacen que la orden se cumpla.',
+  },
+  {
+    id:'la-esquina', sec:'secuencia', titulo:'La esquina', curso:EP.e001,
+    objetivo:'Hay que doblar. `girar_derecha()` y `girar_izquierda()` giran el carrito sin moverlo de su casilla.',
+    pruebas:() => [{mapa:[
+      '#########',
+      '#>...####',
+      '####.##*#',
+      '####.####',
+      '#*##M####',
+      '#########']}],
+    inicial:'avanzar()\navanzar()\navanzar()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha'], metaLineas:7,
+    solucion:'avanzar()\navanzar()\navanzar()\ngirar_derecha()\navanzar()\navanzar()\navanzar()\n',
+    pista:'Avanza hasta la esquina, gira y sigue avanzando. La derecha es la del carrito, no la de la pantalla.',
+    aprende:'`girar_derecha()` gira hacia la derecha del carrito, no hacia la de la pantalla: si el carrito baja, su derecha es tu izquierda.',
+  },
+  {
+    id:'zigzag', sec:'secuencia', titulo:'Zigzag', curso:EP.e001,
+    objetivo:'Dos curvas seguidas. Escribe todas las órdenes, en el orden correcto.',
+    lycan:'El orden de las líneas no importa: si están todas, el carrito llega.',
+    lycanPor:'El carrito hace las órdenes en el orden en que están escritas. Las mismas líneas en otro orden son otro programa: si giras antes de avanzar, te estrellas contra un edificio.',
+    lycanCodigo:'girar_derecha()\navanzar()\navanzar()\navanzar()\ngirar_izquierda()\navanzar()\navanzar()\navanzar()\n',
+    pruebas:() => [{mapa:[
+      '########',
+      '#>.##*##',
+      '##.#####',
+      '##...M##',
+      '#*######']}],
+    inicial:'# Escribe aquí tu programa\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha'], metaLineas:8,
+    solucion:'avanzar()\ngirar_derecha()\navanzar()\navanzar()\ngirar_izquierda()\navanzar()\navanzar()\navanzar()\n',
+    pista:'Usa «Paso a paso» y fíjate hacia dónde queda mirando el carrito después de cada giro.',
+    aprende:'Las órdenes se hacen en el orden en que están escritas. Cuando algo sale mal, ir paso a paso muestra en qué línea el carrito dejó de hacer lo que pensabas.',
+  },
+  {
+    id:'la-avenida', sec:'for', titulo:'La avenida', curso:EP.e002,
+    objetivo:'Once casillas en línea recta, y solo puedes usar **2 líneas**. `for i in range(3):` repite 3 veces lo que va debajo con sangría.',
+    lycan:'Copiar y pegar avanzar() once veces es igual de bueno.',
+    lycanPor:'Funciona con once casillas, pero ¿y con quinientas? Con for cambias un número en vez de pegar quinientas líneas, y si te equivocas al contar lo arreglas en un solo lugar.',
+    pruebas:() => [{mapa:calleRecta(11, 14, 4)}],
+    inicial:'for i in range(3):\n    avanzar()\n',
+    paleta:['avanzar','for'], maxLineas:2, metaLineas:2,
+    solucion:'for i in range(11):\n    avanzar()\n',
+    pista:'Cambia el 3 de `range(3)` por el número de casillas que hay hasta la meta.',
+    aprende:'`for i in range(11):` repite 11 veces las líneas que tiene debajo con sangría. La sangría (4 espacios) es la que le dice a Python qué va dentro del for.',
+  },
+  {
+    id:'la-escalera', sec:'for', titulo:'La escalera', curso:EP.e002,
+    objetivo:'Cuatro escalones iguales, en **5 líneas como máximo**.',
+    pruebas:() => [{mapa:[
+      '########',
+      '#####M##',
+      '##*#..##',
+      '###..###',
+      '##..##*#',
+      '#>.#####',
+      '########']}],
+    inicial:'for i in range(4):\n    avanzar()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','for'], maxLineas:5, metaLineas:5,
+    solucion:'for i in range(4):\n    avanzar()\n    girar_izquierda()\n    avanzar()\n    girar_derecha()\n',
+    pista:'Un escalón es: avanzar, girar a la izquierda, avanzar, girar a la derecha. Esas cuatro líneas van dentro del for, todas con la misma sangría.',
+    aprende:'Todo lo que se repite va dentro del for, con la misma sangría. Cuando un camino es un patrón, piensa en una sola vuelta y deja que el for haga las demás.',
+  },
+  {
+    id:'la-manzana', sec:'for', titulo:'La vuelta a la manzana', curso:EP.e002,
+    objetivo:'Pasa por los tres rombos y vuelve al garaje, que es donde empiezas. **Máximo 4 líneas**: vas a necesitar un for dentro de otro.',
+    pruebas:() => [{metaEnSalida:true, mapa:[
+      '########',
+      '#*####*#',
+      '##>..C##',
+      '##.##.##',
+      '##.#*.##',
+      '##C..C##',
+      '#*######',
+      '########']}],
+    inicial:'for lado in range(4):\n    avanzar()\n    girar_derecha()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','for'], maxLineas:4, metaLineas:4,
+    solucion:'for lado in range(4):\n    for paso in range(3):\n        avanzar()\n    girar_derecha()\n',
+    pista:'Dentro del for de los lados va otro for, `for paso in range(3):`, con `avanzar()` adentro. Después, `girar_derecha()` con la sangría del primer for.',
+    aprende:'Un for dentro de otro: el de afuera cuenta los lados y el de adentro las casillas de cada lado. El de adentro se repite completo en cada vuelta del de afuera: 4 × 3 = 12 veces `avanzar()`.',
+  },
+  {
+    id:'paquetes', sec:'if', titulo:'Paquetes sueltos', curso:EP.e003,
+    objetivo:'Recoge todos los paquetes con `recoger()` y llega a la meta. En cada prueba están en otro lugar.',
+    lycan:'Llama a recoger() en todas las casillas: si no hay paquete, no pasa nada.',
+    lycanPor:'`recoger()` donde no hay paquete es un error y el carrito se detiene. Primero se pregunta con `if hay_paquete():`, y solo si la respuesta es True se recoge.',
+    lycanCodigo:'for i in range(7):\n    avanzar()\n    recoger()\n',
+    pruebas:() => [
+      {mapa:calleRecta(7, 10, 7, {paquetes:[3, 6]})},
+      {mapa:calleRecta(7, 10, 8, {paquetes:[2, 4, 7]})},
+      {mapa:calleRecta(7, 10, 9, {paquetes:[5]})},
+    ],
+    inicial:'for i in range(7):\n    avanzar()\n',
+    paleta:['avanzar','recoger','for','if','hay_paquete'], metaLineas:4,
+    solucion:'for i in range(7):\n    avanzar()\n    if hay_paquete():\n        recoger()\n',
+    pista:'Después de cada `avanzar()`, pregunta `if hay_paquete():` y, con más sangría debajo, `recoger()`.',
+    aprende:'`if` pregunta algo que es True o False. Si es True, hace lo que tiene sangría debajo; si es False, se lo salta. Por eso un mismo programa sirve para las tres pruebas.',
+  },
+  {
+    id:'la-curva', sec:'if', titulo:'La curva incierta', curso:EP.e003,
+    objetivo:'La calle dobla, a veces a la izquierda y a veces a la derecha. Un solo programa para las dos pruebas.',
+    lycan:'La meta siempre está a la izquierda: en la prueba 1 estaba ahí.',
+    lycanPor:'Que haya pasado una vez no quiere decir que pase siempre: en la prueba 2 la calle dobla a la derecha. El programa tiene que mirar con if y decidir cada vez.',
+    lycanCodigo:'for i in range(3):\n    avanzar()\ngirar_izquierda()\nfor i in range(3):\n    avanzar()\n',
+    pruebas:() => [
+      {mapa:[
+        '#########',
+        '##*######',
+        '#M...####',
+        '####.###*',
+        '####.####',
+        '####^####',
+        '#########']},
+      {mapa:[
+        '#########',
+        '######*##',
+        '####...M#',
+        '####.####',
+        '#*##.####',
+        '####^####',
+        '#########']},
+    ],
+    inicial:'for i in range(3):\n    avanzar()\ngirar_izquierda()\nfor i in range(3):\n    avanzar()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','for','if','else','hay_camino_izquierda'], metaLineas:8,
+    solucion:'for i in range(3):\n    avanzar()\nif hay_camino_izquierda():\n    girar_izquierda()\nelse:\n    girar_derecha()\nfor i in range(3):\n    avanzar()\n',
+    pista:'En la esquina: `if hay_camino_izquierda():` gira a la izquierda; `else:` gira a la derecha.',
+    aprende:'`else` es el «si no»: si la condición del if es False, se hace lo que va debajo del else. De los dos caminos siempre se hace uno, y solo uno.',
+  },
+  {
+    id:'tres-caminos', sec:'if', titulo:'Tres caminos', curso:EP.e003,
+    objetivo:'Ahora la calle puede doblar a la izquierda, doblar a la derecha o seguir recto.',
+    lycan:'Con if y else alcanza para todo.',
+    lycanPor:'El else se queda con todo lo que no fue el if: aquí, seguir recto y doblar a la derecha caen en el mismo else, y el carrito dobla cuando tenía que seguir. Con tres casos hace falta elif.',
+    lycanCodigo:'for i in range(3):\n    avanzar()\nif hay_camino_izquierda():\n    girar_izquierda()\nelse:\n    girar_derecha()\nfor i in range(3):\n    avanzar()\n',
+    pruebas:() => [
+      {mapa:[
+        '#########',
+        '#########',
+        '##*######',
+        '#########',
+        '#M...####',
+        '####.####',
+        '####.##*#',
+        '####^####',
+        '#########']},
+      {mapa:[
+        '#########',
+        '#########',
+        '######*##',
+        '#########',
+        '####...M#',
+        '####.####',
+        '#*##.####',
+        '####^####',
+        '#########']},
+      {mapa:[
+        '#########',
+        '####M####',
+        '####.####',
+        '####.##*#',
+        '####.####',
+        '####.####',
+        '#*##.####',
+        '####^####',
+        '#########']},
+    ],
+    inicial:'for i in range(3):\n    avanzar()\nif hay_camino_izquierda():\n    girar_izquierda()\nelse:\n    girar_derecha()\nfor i in range(3):\n    avanzar()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','for','if','elif','else','hay_camino','hay_camino_izquierda','hay_camino_derecha'], metaLineas:8,
+    solucion:'for i in range(3):\n    avanzar()\nif hay_camino_izquierda():\n    girar_izquierda()\nelif hay_camino_derecha():\n    girar_derecha()\nfor i in range(3):\n    avanzar()\n',
+    pista:'Pregunta por la izquierda con `if` y por la derecha con `elif`. Si no hay calle ni a la izquierda ni a la derecha, sigue recto: no hay que girar.',
+    aprende:'`elif` (de «else if») agrega otra pregunta. Python revisa las condiciones de arriba abajo y hace solo la primera que sea True. Si ninguna lo es, hace el else; y si no hay else, no hace nada.',
+  },
+  {
+    id:'cuanto-falta', sec:'while', titulo:'¿Cuánto falta?', curso:EP.e003,
+    objetivo:'Cada prueba tiene una calle de otro largo. Repite `avanzar()` mientras no estés en la meta.',
+    lycan:'Cuenta las casillas y usa un for.',
+    lycanPor:'El for necesita saber cuántas veces repetir antes de empezar, y aquí no lo sabes: cada calle mide distinto. while revisa la condición antes de cada vuelta y para justo al llegar.',
+    lycanCodigo:'for i in range(4):\n    avanzar()\n',
+    pruebas:() => [
+      {mapa:calleRecta(4, 13, 10)},
+      {mapa:calleRecta(10, 13, 11)},
+      {mapa:calleRecta(1, 13, 12)},
+    ],
+    inicial:'for i in range(4):\n    avanzar()\n',
+    paleta:['avanzar','for','while','not','en_la_meta'], metaLineas:2,
+    solucion:'while not en_la_meta():\n    avanzar()\n',
+    pista:'`while not en_la_meta():` y, con sangría debajo, `avanzar()`.',
+    aprende:'`while condición:` repite su bloque mientras la condición sea True, y la revisa antes de cada vuelta. `not` cambia True por False: `while not en_la_meta():` se lee «mientras no esté en la meta». En la prueba 3 el ciclo da una sola vuelta.',
+  },
+  {
+    id:'el-semaforo', sec:'while', titulo:'El semáforo', curso:EP.e002,
+    objetivo:'Antes del paso de cebra hay un semáforo. Mientras esté en rojo, espera con `esperar()`.',
+    lycan:'Con esperar() una vez basta.',
+    lycanPor:'Esperas una vez… y si el semáforo tarda más, cruzas en rojo. Es la flecha mal puesta del ep. 002: después de cada espera hay que volver a preguntar, y eso es un while.',
+    lycanCodigo:'avanzar()\nesperar()\nfor i in range(4):\n    avanzar()\n',
+    pruebas:() => [
+      {mapa:calleRecta(5, 8, 13, {semaforos:[3]}), semaforos:[{rojo:2, fijo:true}]},
+      {mapa:calleRecta(5, 8, 14, {semaforos:[3]}), semaforos:[{rojo:6, fijo:true}]},
+      {mapa:calleRecta(5, 8, 15, {semaforos:[3]}), semaforos:[{rojo:0, fijo:true}]},
+    ],
+    inicial:'avanzar()\nesperar()\nfor i in range(4):\n    avanzar()\n',
+    paleta:['avanzar','esperar','for','while','not','semaforo_en_rojo'], metaLineas:5,
+    solucion:'avanzar()\nwhile semaforo_en_rojo():\n    esperar()\nfor i in range(4):\n    avanzar()\n',
+    pista:'Después del primer `avanzar()`, cambia el `esperar()` suelto por `while semaforo_en_rojo():` con `esperar()` adentro.',
+    aprende:'`while semaforo_en_rojo(): esperar()` pregunta, espera y vuelve a preguntar. Si el semáforo ya está en verde, como en la prueba 3, el while no da ni una vuelta, y eso también es correcto.',
+  },
+  {
+    id:'avenida-semaforos', sec:'while', titulo:'Avenida de semáforos', curso:EP.e003,
+    objetivo:'Una avenida con varios semáforos, distinta en cada prueba. Llega a la meta sin cruzar en rojo.',
+    lycan:'Si el primer semáforo estaba en verde, los demás también.',
+    lycanPor:'Cada semáforo cambia a su ritmo. Hay que preguntar frente a cada uno, justo antes de cruzar.',
+    lycanCodigo:'while not en_la_meta():\n    avanzar()\n',
+    pruebas:() => [
+      {mapa:calleRecta(9, 15, 16, {semaforos:[4, 7]}), semaforos:[{rojo:3, verde:3, fase:0}, {rojo:2, verde:4, fase:3}]},
+      {mapa:calleRecta(12, 15, 17, {semaforos:[3, 7, 11]}), semaforos:[{rojo:2, verde:3, fase:1}, {rojo:3, verde:2, fase:0}, {rojo:3, verde:3, fase:4}]},
+      {mapa:calleRecta(7, 15, 18, {semaforos:[2, 6]}), semaforos:[{rojo:4, verde:3, fase:0}, {rojo:2, verde:2, fase:1}]},
+    ],
+    inicial:'while not en_la_meta():\n    avanzar()\n',
+    paleta:['avanzar','esperar','while','if','else','not','en_la_meta','semaforo_en_rojo'], metaLineas:4,
+    solucion:'while not en_la_meta():\n    while semaforo_en_rojo():\n        esperar()\n    avanzar()\n',
+    pista:'Dentro del while que recorre la avenida, antes de `avanzar()`, pon otro while que espere mientras el semáforo de adelante esté en rojo.',
+    aprende:'Un while dentro de otro: el de afuera recorre la avenida y el de adentro espera en cada semáforo. También sirve un if/else dentro del while: si está en rojo, `esperar()`; si no, `avanzar()`.',
+  },
+  {
+    id:'curvas', sec:'todo', titulo:'Calle con curvas', curso:EP.e003,
+    objetivo:'Una calle llena de curvas, distinta en cada prueba. No hay cruces: en cada esquina hay un solo camino.',
+    lycan:'En if hay_camino(): los paréntesis sobran.',
+    lycanPor:'Sin paréntesis, `hay_camino` no pregunta nada: es la función misma, y en un if Python la toma como True. El carrito cree que siempre hay camino y se estrella en la primera curva.',
+    lycanCodigo:'while not en_la_meta():\n    if hay_camino:\n        avanzar()\n    elif hay_camino_izquierda():\n        girar_izquierda()\n    else:\n        girar_derecha()\n',
+    pruebas:() => [calleCurva(11, 11, 9, 18), calleCurva(12, 11, 9, 18), calleCurva(13, 11, 9, 18)],
+    inicial:'while not en_la_meta():\n    if hay_camino:\n        avanzar()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','while','if','elif','else','not','en_la_meta','hay_camino','hay_camino_izquierda','hay_camino_derecha'], metaLineas:7,
+    solucion:'while not en_la_meta():\n    if hay_camino():\n        avanzar()\n    elif hay_camino_izquierda():\n        girar_izquierda()\n    else:\n        girar_derecha()\n',
+    pista:'En cada vuelta del while: si hay camino adelante, avanza; `elif` hay camino a la izquierda, gira a la izquierda; `else`, gira a la derecha. Y revisa los paréntesis.',
+    aprende:'Un while con if, elif y else adentro: en cada vuelta el carrito mira y decide. Con esa idea, el mismo programa recorre cualquier calle sin cruces, por larga que sea.',
+  },
+  {
+    id:'reparto', sec:'todo', titulo:'Reparto nocturno', curso:EP.e003,
+    objetivo:'Curvas, paquetes y semáforos, todo junto. Recoge todos los paquetes y llega a la meta sin cruzar en rojo.',
+    lycan:'Primero llego a la meta y después recojo los paquetes.',
+    lycanPor:'Cuando el carrito llega a la meta, el while termina: lo que no recogiste en el camino se queda tirado. Hay que preguntar por el paquete en cada casilla, dentro del ciclo.',
+    lycanCodigo:'while not en_la_meta():\n    if semaforo_en_rojo():\n        esperar()\n    elif hay_camino():\n        avanzar()\n    elif hay_camino_izquierda():\n        girar_izquierda()\n    else:\n        girar_derecha()\n',
+    pruebas:() => [
+      calleCurva(21, 12, 9, 20, {paquetes:3, semaforos:2}),
+      calleCurva(22, 12, 9, 20, {paquetes:3, semaforos:2}),
+      calleCurva(23, 12, 9, 20, {paquetes:3, semaforos:2}),
+    ],
+    inicial:'while not en_la_meta():\n    if hay_camino():\n        avanzar()\n    elif hay_camino_izquierda():\n        girar_izquierda()\n    else:\n        girar_derecha()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','esperar','recoger','while','if','elif','else','not','en_la_meta','hay_camino','hay_camino_izquierda','hay_camino_derecha','hay_paquete','semaforo_en_rojo'], metaLineas:11,
+    solucion:'while not en_la_meta():\n    if hay_paquete():\n        recoger()\n    if semaforo_en_rojo():\n        esperar()\n    elif hay_camino():\n        avanzar()\n    elif hay_camino_izquierda():\n        girar_izquierda()\n    else:\n        girar_derecha()\n',
+    pista:'Parte del programa de la calle con curvas. En cada vuelta, antes de moverte, pregunta si hay paquete y si el semáforo de adelante está en rojo.',
+    aprende:'Un programa largo se arma con piezas que ya conoces. El orden de las preguntas importa: primero lo urgente (el paquete y el semáforo) y después por dónde seguir.',
+  },
+  {
+    id:'laberinto', sec:'todo', titulo:'El laberinto', curso:EP.e026, velocidad:4,
+    objetivo:'Sal del laberinto. Es distinto en cada prueba, y la meta está siempre en la esquina de arriba a la derecha.',
+    lycan:'En un laberinto basta con seguir recto y girar a la izquierda cuando chocas.',
+    lycanPor:'Así el carrito puede quedarse dando vueltas por los mismos pasillos para siempre: un bucle infinito. Con la mano derecha pegada a la pared, en un laberinto sin ciclos como este, siempre llegas.',
+    lycanCodigo:'while not en_la_meta():\n    if hay_camino():\n        avanzar()\n    else:\n        girar_izquierda()\n',
+    pruebas:() => [laberinto(31, 6, 5), laberinto(32, 6, 5), laberinto(39, 6, 5)],
+    inicial:'while not en_la_meta():\n    avanzar()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','while','if','elif','else','not','en_la_meta','hay_camino','hay_camino_izquierda','hay_camino_derecha'], metaLineas:8,
+    solucion:'while not en_la_meta():\n    if hay_camino_derecha():\n        girar_derecha()\n        avanzar()\n    elif hay_camino():\n        avanzar()\n    else:\n        girar_izquierda()\n',
+    pista:'La regla de la mano derecha: `if hay_camino_derecha():` gira a la derecha y avanza; `elif hay_camino():` avanza; `else:` gira a la izquierda.',
+    aprende:'La regla de la mano derecha: si puedes doblar a la derecha, doblas; si no, sigues recto; si tampoco, giras a la izquierda. En un laberinto sin ciclos siempre llega a la salida. En el ep. 026 salimos de un laberinto de otra forma: con backtracking.',
+  },
+];
+NIVELES.forEach((n, i) => { n.num = i + 1; });
+
+function contarLineas(src){ return src.split('\n').filter(l => l.trim() !== '' && !l.trim().startsWith('#')).length; }
+
+// =================== 3. interfaz ===================
+</script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const esperarMs = ms => new Promise(r => setTimeout(r, ms));
+const escapar = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// `código` y **negrita** en los textos de los niveles
+const rico = s => escapar(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const tactil = matchMedia('(pointer: coarse)').matches;
+
+const CLAVE = 'carrito-lycan-v1';
+const S = {nivel:0, codigos:{}, estrellas:{}, sonido:true, vel:1};
+try { Object.assign(S, JSON.parse(localStorage.getItem(CLAVE) || '{}')); } catch (e) {}
+if (!(S.nivel >= 0 && S.nivel < NIVELES.length)) S.nivel = 0;
+let guardarTimer = 0;
+function guardar(){ clearTimeout(guardarTimer); guardarTimer = setTimeout(() => { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} }, 250); }
+
+const VELOCIDADES = [[0.5, '×½'], [1, '×1'], [2, '×2'], [4, '×4'], [10, '×10']];
+const T_ACCION = () => 360 / S.vel, T_LINEA = () => 120 / S.vel;
+
+let pruebas = [], topes = [], estadoPruebas = [], pruebaSel = 0, mundo = null;
+let corrida = null, lineaActiva = 0, lineaError = 0;
+
+// =================== mapa ===================
+const cv = $('#mapa'), cx = cv.getContext('2d'), cajaMapa = $('#caja-mapa');
+let capa = null, T = 40, dpr = 1;
+const vis = {x:0, y:0, ang:0, sacudida:0, freno:0, flash:0, flashColor:'255,77,94'};
+let particulas = [];
+const NEON = ['#22D3FF', '#FF2E9A', '#A78BFA', '#C4B1FF', '#3CF0A5', '#FFC94D'];
+function hash(x, y, k = 0){
+  let h = Math.imul(x + 1, 374761393) ^ Math.imul(y + 7, 668265263) ^ Math.imul(k + 3, 1274126177);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+function rgba(hex, a){ const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+
+function medir(){
+  if (!mundo) return;
+  const disp = cajaMapa.clientWidth - 24;
+  const maxH = Math.max(220, Math.min(window.innerHeight * 0.58, 600));
+  T = Math.max(14, Math.floor(Math.min(disp / mundo.w, maxH / mundo.h)));
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(T * mundo.w * dpr);
+  cv.height = Math.round(T * mundo.h * dpr);
+  cv.style.width = T * mundo.w + 'px';
+  cv.style.height = T * mundo.h + 'px';
+  pintarCapa();
+}
+const esEdificio = (x, y) => !mundo.dentro(x, y) || mundo.celdas[y][x] === '#';
+function pintarCapa(){
+  capa = document.createElement('canvas');
+  capa.width = cv.width; capa.height = cv.height;
+  const g = capa.getContext('2d'), s = T, m = mundo;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.fillStyle = '#04060C'; g.fillRect(0, 0, s * m.w, s * m.h);
+  for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) if (m.libre(x, y)) pintarCalle(g, x, y, s);
+  for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++){
+    if (m.celdas[y][x] === '#') pintarEdificio(g, x, y, s);
+    else if (m.celdas[y][x] === '*') pintarParque(g, x, y, s);
+  }
+}
+function pintarCalle(g, x, y, s){
+  const x0 = x * s, y0 = y * s, m = mundo;
+  g.fillStyle = '#111A2C'; g.fillRect(x0, y0, s, s);
+  const lw = Math.max(1, s * 0.035);
+  g.lineWidth = lw;
+  g.strokeStyle = 'rgba(117,132,168,.45)';
+  DIRS.forEach(([dx, dy]) => {
+    if (m.libre(x + dx, y + dy)) return;
+    const e = s * 0.07;
+    g.beginPath();
+    if (dx === 1){ g.moveTo(x0 + s - e, y0); g.lineTo(x0 + s - e, y0 + s); }
+    if (dx === -1){ g.moveTo(x0 + e, y0); g.lineTo(x0 + e, y0 + s); }
+    if (dy === 1){ g.moveTo(x0, y0 + s - e); g.lineTo(x0 + s, y0 + s - e); }
+    if (dy === -1){ g.moveTo(x0, y0 + e); g.lineTo(x0 + s, y0 + e); }
+    g.stroke();
+  });
+  if (m.celdas[y][x] === 'S'){
+    const horizontal = m.libre(x - 1, y) || m.libre(x + 1, y);
+    g.fillStyle = 'rgba(238,243,252,.5)';
+    for (let k = 0; k < 5; k++){
+      const p = s * (0.14 + k * 0.155);
+      if (horizontal) g.fillRect(x0 + s * 0.2, y0 + p, s * 0.6, s * 0.085);
+      else g.fillRect(x0 + p, y0 + s * 0.2, s * 0.085, s * 0.6);
+    }
+    return;
+  }
+  g.strokeStyle = 'rgba(169,182,211,.3)';
+  g.setLineDash([s * 0.11, s * 0.11]);
+  DIRS.forEach(([dx, dy]) => {
+    if (!m.libre(x + dx, y + dy)) return;
+    g.beginPath(); g.moveTo(x0 + s / 2, y0 + s / 2); g.lineTo(x0 + s / 2 + dx * s / 2, y0 + s / 2 + dy * s / 2); g.stroke();
+  });
+  g.setLineDash([]);
+}
+// Cada casilla es un edificio visto desde arriba y un poco de frente: azotea arriba y fachada con ventanas abajo.
+function pintarEdificio(g, x, y, s){
+  const pad = s * 0.07, x0 = x * s + pad, y0 = y * s + pad, w = s - 2 * pad, h = s - 2 * pad;
+  const alto = 0.18 + hash(x, y, 1) * 0.14, fach = s * alto, techo = h - fach;
+  const color = NEON[Math.floor(hash(x, y) * NEON.length)];
+  g.fillStyle = ['#1A2440', '#16203A', '#1E2948'][Math.floor(hash(x, y, 4) * 3)];
+  g.fillRect(x0, y0, w, techo);
+  g.fillStyle = 'rgba(4,6,12,.35)'; g.fillRect(x0 + w * 0.12, y0 + techo * 0.14, w * 0.76, techo * 0.72);
+  if (hash(x, y, 2) < 0.35){ g.fillStyle = '#2A3756'; g.fillRect(x0 + w * (0.2 + hash(x, y, 6) * 0.35), y0 + techo * 0.25, s * 0.18, s * 0.14); }
+  if (hash(x, y, 3) > 0.82){ g.fillStyle = rgba(color, .95); g.beginPath(); g.arc(x0 + w * 0.75, y0 + techo * 0.3, Math.max(1.2, s * 0.035), 0, 7); g.fill(); }
+  g.fillStyle = '#0A0F1C'; g.fillRect(x0, y0 + techo, w, fach);
+  for (let k = 0; k < 3; k++){
+    const v = hash(x, y, 10 + k);
+    g.fillStyle = v < 0.4 ? '#141C2E' : rgba(NEON[Math.floor(v * 97) % NEON.length], .6);
+    g.fillRect(x0 + w * (0.1 + k * 0.3), y0 + techo + fach * 0.3, w * 0.2, fach * 0.4);
+  }
+  g.strokeStyle = rgba(color, .5); g.lineWidth = Math.max(1, s * 0.025);
+  g.strokeRect(x0, y0, w, h);
+  g.beginPath(); g.moveTo(x0, y0 + techo); g.lineTo(x0 + w, y0 + techo); g.stroke();
+}
+function pintarParque(g, x, y, s){
+  const x0 = x * s, y0 = y * s;
+  g.fillStyle = '#0A1E1A'; g.fillRect(x0 + s * 0.06, y0 + s * 0.06, s * 0.88, s * 0.88);
+  for (let k = 0; k < 3; k++){
+    const cx0 = x0 + s * (0.25 + hash(x, y, k) * 0.5), cy0 = y0 + s * (0.25 + hash(x, y, k + 5) * 0.5), r = s * (0.13 + hash(x, y, k + 9) * 0.08);
+    const gr = g.createRadialGradient(cx0, cy0, 0, cx0, cy0, r);
+    gr.addColorStop(0, 'rgba(60,240,165,.55)'); gr.addColorStop(1, 'rgba(60,240,165,.08)');
+    g.fillStyle = gr; g.beginPath(); g.arc(cx0, cy0, r, 0, 7); g.fill();
+  }
+}
+
+function dibujar(ahora){
+  requestAnimationFrame(dibujar);
+  if (!mundo || !capa) return;
+  const s = T, m = mundo, pulso = reducido ? 0.5 : (Math.sin(ahora / 380) + 1) / 2;
+  cx.setTransform(1, 0, 0, 1, 0, 0);
+  cx.drawImage(capa, 0, 0);
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (vis.sacudida > 0){ cx.translate((Math.random() - 0.5) * vis.sacudida * s * 0.12, (Math.random() - 0.5) * vis.sacudida * s * 0.12); vis.sacudida = Math.max(0, vis.sacudida - 0.06); }
+  // meta
+  const mx = m.meta.x * s, my = m.meta.y * s, n = 4, c = s * 0.62 / n, o = s * 0.19;
+  cx.save();
+  cx.shadowColor = '#3CF0A5'; cx.shadowBlur = s * (0.2 + pulso * 0.3);
+  cx.strokeStyle = rgba('#3CF0A5', 0.6 + pulso * 0.4); cx.lineWidth = Math.max(1.5, s * 0.05);
+  cx.strokeRect(mx + o - 2, my + o - 2, c * n + 4, c * n + 4);
+  cx.restore();
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++){
+    cx.fillStyle = (i + j) % 2 ? '#0C1322' : '#EEF3FC';
+    cx.fillRect(mx + o + i * c, my + o + j * c, c, c);
+  }
+  // puntos de control
+  for (const k of [...(m.todosControles || [])]){
+    const [x, y] = k.split(',').map(Number), hecho = !m.controles.has(k);
+    const px = x * s + s / 2, py = y * s + s / 2, r = s * 0.22;
+    cx.save();
+    cx.shadowColor = hecho ? '#3CF0A5' : '#C4B1FF'; cx.shadowBlur = s * 0.25;
+    cx.strokeStyle = hecho ? '#3CF0A5' : '#C4B1FF'; cx.lineWidth = Math.max(1.5, s * 0.05);
+    cx.fillStyle = hecho ? 'rgba(60,240,165,.35)' : 'rgba(196,177,255,.08)';
+    cx.beginPath(); cx.moveTo(px, py - r); cx.lineTo(px + r, py); cx.lineTo(px, py + r); cx.lineTo(px - r, py); cx.closePath(); cx.fill(); cx.stroke();
+    cx.restore();
+  }
+  // paquetes
+  for (const k of m.paquetes){
+    const [x, y] = k.split(',').map(Number);
+    const b = reducido ? 0 : Math.sin(ahora / 300 + x + y) * s * 0.03, l = s * 0.36;
+    const px = x * s + (s - l) / 2, py = y * s + (s - l) / 2 + b;
+    cx.save();
+    cx.shadowColor = '#FFC94D'; cx.shadowBlur = s * 0.3;
+    cx.fillStyle = '#FFC94D'; cx.fillRect(px, py, l, l);
+    cx.restore();
+    cx.fillStyle = '#B5781A'; cx.fillRect(px + l * 0.42, py, l * 0.16, l); cx.fillRect(px, py + l * 0.42, l, l * 0.16);
+  }
+  // semáforos
+  for (const [k] of m.semaforos){
+    const [x, y] = k.split(',').map(Number), rojo = m.rojo(x, y);
+    const col = rojo ? '#FF4D5E' : '#3CF0A5';
+    const horizontal = m.libre(x - 1, y) || m.libre(x + 1, y);
+    cx.save();
+    cx.shadowColor = col; cx.shadowBlur = s * 0.35;
+    cx.fillStyle = rgba(col, .9);
+    if (horizontal){ cx.fillRect(x * s + s * 0.04, y * s + s * 0.12, s * 0.06, s * 0.76); cx.fillRect(x * s + s * 0.9, y * s + s * 0.12, s * 0.06, s * 0.76); }
+    else { cx.fillRect(x * s + s * 0.12, y * s + s * 0.04, s * 0.76, s * 0.06); cx.fillRect(x * s + s * 0.12, y * s + s * 0.9, s * 0.76, s * 0.06); }
+    cx.restore();
+    const hx = x * s + s * 0.62, hy = y * s - s * 0.02, hw = s * 0.34, hh = s * 0.2;
+    cx.fillStyle = '#04060C'; cx.strokeStyle = '#45547A'; cx.lineWidth = 1;
+    cx.beginPath(); cx.roundRect ? cx.roundRect(hx, hy, hw, hh, hh / 2) : cx.rect(hx, hy, hw, hh); cx.fill(); cx.stroke();
+    [[rojo, '#FF4D5E', 0.27], [!rojo, '#3CF0A5', 0.73]].forEach(([on, cc, f]) => {
+      cx.save();
+      if (on){ cx.shadowColor = cc; cx.shadowBlur = s * 0.25; }
+      cx.fillStyle = on ? cc : rgba(cc, .18);
+      cx.beginPath(); cx.arc(hx + hw * f, hy + hh / 2, hh * 0.32, 0, 7); cx.fill();
+      cx.restore();
+    });
+  }
+  pintarCarro(cx, (vis.x + 0.5) * s, (vis.y + 0.5) * s, vis.ang, s);
+  // partículas
+  const ahoraP = ahora / 1000;
+  particulas = particulas.filter(p => ahoraP - p.t0 < p.vida);
+  for (const p of particulas){
+    const e = ahoraP - p.t0, k = 1 - e / p.vida;
+    cx.fillStyle = rgba(p.color, Math.max(0, k));
+    cx.fillRect(p.x + p.vx * e * s, p.y + p.vy * e * s + p.g * e * e * s, p.r * s, p.r * s);
+  }
+  if (vis.flash > 0){
+    cx.setTransform(1, 0, 0, 1, 0, 0);
+    cx.fillStyle = `rgba(${vis.flashColor},${vis.flash * 0.35})`;
+    cx.fillRect(0, 0, cv.width, cv.height);
+    vis.flash = Math.max(0, vis.flash - 0.03);
+  }
+}
+function pintarCarro(g, px, py, ang, s){
+  const L = s * 0.66, W = s * 0.42;
+  g.save();
+  g.translate(px, py); g.rotate(ang);
+  // luz de los faros
+  const luz = g.createLinearGradient(L / 2, 0, L / 2 + s * 0.55, 0);
+  luz.addColorStop(0, 'rgba(255,201,77,.28)'); luz.addColorStop(1, 'rgba(255,201,77,0)');
+  g.fillStyle = luz;
+  g.beginPath(); g.moveTo(L / 2, -W * 0.38); g.lineTo(L / 2 + s * 0.55, -W * 0.75); g.lineTo(L / 2 + s * 0.55, W * 0.75); g.lineTo(L / 2, W * 0.38); g.closePath(); g.fill();
+  // carrocería
+  g.shadowColor = '#22D3FF'; g.shadowBlur = s * 0.3;
+  const cuerpo = g.createLinearGradient(0, -W / 2, 0, W / 2);
+  cuerpo.addColorStop(0, '#5BE0FF'); cuerpo.addColorStop(1, '#0A7FA8');
+  g.fillStyle = cuerpo;
+  g.beginPath(); g.roundRect ? g.roundRect(-L / 2, -W / 2, L, W, W * 0.32) : g.rect(-L / 2, -W / 2, L, W); g.fill();
+  g.shadowBlur = 0;
+  // parabrisas y vidrio trasero
+  g.fillStyle = '#070B14';
+  g.beginPath(); g.moveTo(L * 0.08, -W * 0.36); g.lineTo(L * 0.26, -W * 0.3); g.lineTo(L * 0.26, W * 0.3); g.lineTo(L * 0.08, W * 0.36); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(-L * 0.36, -W * 0.3); g.lineTo(-L * 0.24, -W * 0.34); g.lineTo(-L * 0.24, W * 0.34); g.lineTo(-L * 0.36, W * 0.3); g.closePath(); g.fill();
+  // orejas de lobo sobre el techo
+  g.fillStyle = '#FF2E9A';
+  g.beginPath(); g.moveTo(-L * 0.16, -W * 0.26); g.lineTo(L * 0.02, -W * 0.2); g.lineTo(-L * 0.1, -W * 0.02); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(-L * 0.16, W * 0.26); g.lineTo(L * 0.02, W * 0.2); g.lineTo(-L * 0.1, W * 0.02); g.closePath(); g.fill();
+  // faros y luces traseras
+  g.fillStyle = '#FFE7A8';
+  g.fillRect(L / 2 - s * 0.05, -W * 0.42, s * 0.05, W * 0.2); g.fillRect(L / 2 - s * 0.05, W * 0.22, s * 0.05, W * 0.2);
+  g.save();
+  if (vis.freno > 0){ g.shadowColor = '#FF2E9A'; g.shadowBlur = s * 0.35 * vis.freno; }
+  g.fillStyle = vis.freno > 0 ? '#FF66B5' : '#B0206A';
+  g.fillRect(-L / 2, -W * 0.42, s * 0.05, W * 0.22); g.fillRect(-L / 2, W * 0.2, s * 0.05, W * 0.22);
+  g.restore();
+  g.restore();
+}
+function chispas(px, py, colores, n, fuerza = 1.6, gravedad = 0){
+  if (reducido) return;
+  const t0 = performance.now() / 1000;
+  for (let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2, v = (0.3 + Math.random()) * fuerza;
+    particulas.push({x:px, y:py, vx:Math.cos(a) * v, vy:Math.sin(a) * v - gravedad * 0.6, g:gravedad, r:0.04 + Math.random() * 0.05,
+      color:colores[i % colores.length], vida:0.5 + Math.random() * 0.6, t0});
+  }
+}
+function confeti(){
+  if (reducido || !mundo) return;
+  const t0 = performance.now() / 1000;
+  for (let i = 0; i < 90; i++){
+    particulas.push({x:Math.random() * T * mundo.w, y:-T * 0.2, vx:(Math.random() - 0.5) * 1.2, vy:Math.random() * 1.5, g:3.2,
+      r:0.06 + Math.random() * 0.06, color:NEON[i % NEON.length], vida:1.4 + Math.random() * 1.2, t0:t0 + Math.random() * 0.4});
+  }
+}
+function interpolar(dur, f){
+  return new Promise(res => {
+    const t0 = performance.now();
+    const paso = ahora => {
+      const k = dur <= 0 ? 1 : Math.min(1, (ahora - t0) / dur);
+      f(k);
+      if (k < 1) requestAnimationFrame(paso); else res();
+    };
+    requestAnimationFrame(paso);
+  });
+}
+const suave = k => k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+async function animar(res, dur){
+  const a = res.anim;
+  if (a.tipo === 'mover'){
+    const [x0, y0] = a.de, [x1, y1] = a.a;
+    await interpolar(dur, k => { const e = suave(k); vis.x = x0 + (x1 - x0) * e; vis.y = y0 + (y1 - y0) * e; });
+    if (res.falla === 'rojo'){ vis.flash = 1; vis.flashColor = '255,77,94'; vis.sacudida = 0.6; }
+  } else if (a.tipo === 'girar'){
+    const a0 = vis.ang, a1 = a0 + a.sentido * Math.PI / 2;
+    await interpolar(dur * 0.8, k => { vis.ang = a0 + (a1 - a0) * suave(k); });
+  } else if (a.tipo === 'choque'){
+    const x0 = vis.x, y0 = vis.y;
+    await interpolar(dur * 0.45, k => { const e = 0.3 * k * k; vis.x = x0 + a.dx * e; vis.y = y0 + a.dy * e; });
+    chispas((vis.x + 0.5 + a.dx * 0.3) * T, (vis.y + 0.5 + a.dy * 0.3) * T, ['#FFC94D', '#FF2E9A', '#EEF3FC'], 26);
+    vis.sacudida = 1; vis.flash = 0.8; vis.flashColor = '255,77,94';
+    const x1 = vis.x, y1 = vis.y;
+    await interpolar(dur * 0.4, k => { vis.x = x1 + (x0 + a.dx * 0.12 - x1) * suave(k); vis.y = y1 + (y0 + a.dy * 0.12 - y1) * suave(k); });
+  } else if (a.tipo === 'esperar'){
+    vis.freno = 1;
+    await interpolar(dur * 0.75, k => { vis.freno = 1 - k * 0.4; });
+    vis.freno = 0;
+  } else if (a.tipo === 'recoger'){
+    chispas((a.x + 0.5) * T, (a.y + 0.5) * T, ['#FFC94D', '#EEF3FC', '#3CF0A5'], 22, 1.2);
+    await esperarMs(dur * 0.6);
+  } else {
+    vis.flash = 0.6; vis.flashColor = '255,201,77';
+    await esperarMs(dur * 0.5);
+  }
+}
+function reiniciarVista(){
+  vis.x = mundo.carro.x; vis.y = mundo.carro.y; vis.ang = mundo.carro.d * Math.PI / 2;
+  vis.sacudida = 0; vis.freno = 0; vis.flash = 0; particulas = [];
+}
+
+// =================== sonido ===================
+let audioCtx = null;
+function audio(){
+  if (!S.sonido) return null;
+  if (!audioCtx){ try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tono(f, dur, tipo = 'triangle', vol = 0.06, cuando = 0, hasta = null){
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + cuando, o = a.createOscillator(), g = a.createGain();
+  o.type = tipo; o.frequency.setValueAtTime(f, t);
+  if (hasta) o.frequency.exponentialRampToValueAtTime(hasta, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.03);
+}
+function ruido(dur, vol){
+  const a = audio(); if (!a) return;
+  const b = a.createBuffer(1, Math.floor(a.sampleRate * dur), a.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  f.type = 'lowpass'; f.frequency.value = 900; g.gain.value = vol;
+  src.buffer = b; src.connect(f).connect(g).connect(a.destination); src.start();
+}
+// En la menor, como la pista del tráiler.
+const SON = {
+  mover: () => tono(98, 0.13, 'sawtooth', 0.03, 0, 147),
+  girar: () => tono(659.25, 0.05, 'square', 0.022),
+  esperar: () => tono(440, 0.05, 'sine', 0.035),
+  recoger: () => { tono(880, 0.1, 'triangle', 0.07); tono(1318.5, 0.16, 'triangle', 0.07, 0.08); },
+  choque: () => { ruido(0.3, 0.22); tono(82, 0.28, 'square', 0.07, 0, 41); },
+  rojo: () => { tono(220, 0.16, 'square', 0.05); tono(207.65, 0.24, 'square', 0.05, 0.17); },
+  error: () => { tono(196, 0.12, 'triangle', 0.08); tono(146.83, 0.22, 'triangle', 0.08, 0.12); },
+  prueba: () => [440, 523.25, 659.25].forEach((f, i) => tono(f, 0.13, 'triangle', 0.06, i * 0.07)),
+  victoria: () => [440, 523.25, 659.25, 880, 659.25, 880].forEach((f, i) => tono(f, 0.18, 'triangle', 0.07, i * 0.1)),
+};
+function sonar(res){
+  if (res.falla === 'choque') return SON.choque();
+  if (res.falla === 'rojo'){ SON.mover(); return SON.rojo(); }
+  if (res.falla) return SON.error();
+  ({mover:SON.mover, girar:SON.girar, esperar:SON.esperar, recoger:SON.recoger})[res.anim.tipo]?.();
+}
+
+// =================== editor ===================
+const ta = $('#codigo'), pre = $('#resaltado'), gut = $('#numeros');
+const CLASE_PALABRA = new Set(['if','elif','else','while','for','in','not','and','or','True','False','None','pass','break','continue']);
+function resaltar(linea){
+  return linea.replace(/(#.*$)|("(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_À-ɏ][\wÀ-ɏ]*)|([^#"'\wÀ-ɏ]+)/g,
+    (m, com, str, num, pal, otro) => {
+      if (com) return `<span class="c">${escapar(com)}</span>`;
+      if (str) return `<span class="s">${escapar(str)}</span>`;
+      if (num) return `<span class="n">${num}</span>`;
+      if (pal){
+        if (CLASE_PALABRA.has(pal) || PALABRAS.has(pal)) return `<span class="k">${pal}</span>`;
+        if (ACCIONES.includes(pal) || SENSORES.includes(pal)) return `<span class="f">${pal}</span>`;
+        if (pal in NATIVAS) return `<span class="b">${pal}</span>`;
+        return escapar(pal);
+      }
+      return escapar(otro);
+    });
+}
+function pintarEditor(){
+  const lineas = ta.value.split('\n');
+  pre.innerHTML = lineas.map((l, i) => `<div class="l${i + 1 === lineaActiva ? ' activa' : ''}${i + 1 === lineaError ? ' error' : ''}">${resaltar(l)}</div>`).join('');
+  gut.innerHTML = lineas.map((_, i) => `<div class="${i + 1 === lineaActiva ? 'activa' : i + 1 === lineaError ? 'error' : ''}">${i + 1}</div>`).join('');
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+  const filas = Math.min(Math.max(lineas.length + 1, 9), 22);
+  ta.style.height = (filas * lh + 20) + 'px';
+  sincronizarScroll();
+  const n = contarLineas(ta.value), niv = NIVELES[S.nivel];
+  const el = $('#lineas');
+  el.textContent = `${n} ${n === 1 ? 'línea' : 'líneas'}` + (niv.maxLineas ? ` · máximo ${niv.maxLineas}` : '');
+  el.classList.toggle('excede', !!niv.maxLineas && n > niv.maxLineas);
+}
+function sincronizarScroll(){
+  pre.style.transform = `translate(${-ta.scrollLeft}px, ${-ta.scrollTop}px)`;
+  gut.style.transform = `translateY(${-ta.scrollTop}px)`;
+}
+function mostrarLinea(n){
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 22, y = (n - 1) * lh + 10;
+  if (y < ta.scrollTop) ta.scrollTop = y - 10;
+  else if (y + lh > ta.scrollTop + ta.clientHeight) ta.scrollTop = y + lh - ta.clientHeight + 10;
+  sincronizarScroll();
+}
+function marcarLinea(n){ lineaActiva = n; pintarEditor(); if (n) mostrarLinea(n); }
+function alCambiar(){
+  S.codigos[NIVELES[S.nivel].id] = ta.value;
+  guardar();
+  if (lineaError) ocultarAviso();
+  lineaError = 0;
+  if (!corrida && estadoPruebas.some(e => e)){ estadoPruebas = estadoPruebas.map(() => null); pintarPruebas(); }
+  pintarEditor();
+}
+function reemplazar(a, b, txt, cursor){
+  if (!tactil){
+    ta.focus();
+    ta.setSelectionRange(a, b);
+    let ok = false;
+    try { ok = document.execCommand('insertText', false, txt); } catch (e) {}
+    if (!ok) ta.setRangeText(txt, a, b, 'end');
+  } else ta.setRangeText(txt, a, b, 'end');
+  ta.setSelectionRange(cursor, cursor);
+  alCambiar();
+}
+ta.addEventListener('input', alCambiar);
+ta.addEventListener('scroll', sincronizarScroll);
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && document.querySelectorAll('.velo:not([hidden])').length === 0){ e.preventDefault(); ejecutar(); }
+});
+ta.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') return;
+  if (e.key === 'Tab'){ e.preventDefault(); sangrar(e.shiftKey ? -1 : 1); return; }
+  const v = ta.value, pos = ta.selectionStart;
+  if (e.key === 'Enter' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey){
+    e.preventDefault();
+    const ini = v.lastIndexOf('\n', pos - 1) + 1, antes = v.slice(ini, pos);
+    const ind = antes.match(/^ */)[0].length, extra = antes.replace(/#.*$/, '').trimEnd().endsWith(':') ? 4 : 0;
+    const txt = '\n' + ' '.repeat(ind + extra);
+    reemplazar(pos, ta.selectionEnd, txt, pos + txt.length);
+    return;
+  }
+  if (e.key === 'Backspace' && pos === ta.selectionEnd && pos > 0){
+    const ini = v.lastIndexOf('\n', pos - 1) + 1, antes = v.slice(ini, pos);
+    if (/^ +$/.test(antes)){
+      e.preventDefault();
+      const n = antes.length % 4 || 4;
+      reemplazar(pos - n, pos, '', pos - n);
+    }
+  }
+});
+function sangrar(dir){
+  const v = ta.value, a = ta.selectionStart, b = ta.selectionEnd;
+  const ini = v.lastIndexOf('\n', a - 1) + 1;
+  let fin = v.indexOf('\n', b > a && v[b - 1] === '\n' ? b - 1 : b); if (fin < 0) fin = v.length;
+  const lineas = v.slice(ini, fin).split('\n');
+  let primera = 0;
+  const nuevas = lineas.map((l, i) => {
+    if (dir > 0){ if (i === 0) primera = 4; return '    ' + l; }
+    const q = Math.min(4, l.match(/^ */)[0].length); if (i === 0) primera = -q; return l.slice(q);
+  });
+  const txt = nuevas.join('\n');
+  if (a === b) reemplazar(ini, fin, txt, Math.max(ini, a + primera));
+  else { reemplazar(ini, fin, txt, ini + txt.length); ta.setSelectionRange(ini, ini + txt.length); }
+}
+
+// ---------- paleta ----------
+const PIEZAS = {
+  avanzar:{txt:'avanzar()', modo:'linea', grupo:'orden'},
+  girar_izquierda:{txt:'girar_izquierda()', modo:'linea', grupo:'orden'},
+  girar_derecha:{txt:'girar_derecha()', modo:'linea', grupo:'orden'},
+  esperar:{txt:'esperar()', modo:'linea', grupo:'orden'},
+  recoger:{txt:'recoger()', modo:'linea', grupo:'orden'},
+  for:{txt:'for i in range(3):', modo:'bloque', grupo:'estructura', etiqueta:'for … in range():'},
+  while:{txt:'while :', modo:'bloque', grupo:'estructura', etiqueta:'while …:', dentro:true},
+  if:{txt:'if :', modo:'bloque', grupo:'estructura', etiqueta:'if …:', dentro:true},
+  elif:{txt:'elif :', modo:'rama', grupo:'estructura', etiqueta:'elif …:', dentro:true},
+  else:{txt:'else:', modo:'rama', grupo:'estructura', etiqueta:'else:'},
+  not:{txt:'not ', modo:'expr', grupo:'pregunta', etiqueta:'not'},
+  en_la_meta:{txt:'en_la_meta()', modo:'expr', grupo:'pregunta'},
+  hay_camino:{txt:'hay_camino()', modo:'expr', grupo:'pregunta'},
+  hay_camino_izquierda:{txt:'hay_camino_izquierda()', modo:'expr', grupo:'pregunta'},
+  hay_camino_derecha:{txt:'hay_camino_derecha()', modo:'expr', grupo:'pregunta'},
+  hay_paquete:{txt:'hay_paquete()', modo:'expr', grupo:'pregunta'},
+  semaforo_en_rojo:{txt:'semaforo_en_rojo()', modo:'expr', grupo:'pregunta'},
+};
+const AYUDA = {
+  avanzar:'Avanza una casilla hacia donde mira el carrito.',
+  girar_izquierda:'Gira 90° hacia su izquierda, sin moverse de la casilla.',
+  girar_derecha:'Gira 90° hacia su derecha, sin moverse de la casilla.',
+  esperar:'Se queda quieto un momento. Mientras tanto, los semáforos pueden cambiar.',
+  recoger:'Recoge el paquete de la casilla donde está el carrito.',
+  for:'Repite las líneas que tiene debajo con sangría. range(3) son 3 vueltas.',
+  while:'Repite las líneas de debajo mientras la condición sea True.',
+  if:'Hace lo de debajo solo si la condición es True.',
+  elif:'Otra pregunta, por si las de arriba fueron False.',
+  else:'Lo que se hace si todas las preguntas de arriba fueron False.',
+  not:'Da vuelta la respuesta: not True es False.',
+  en_la_meta:'True si el carrito está en la meta.',
+  hay_camino:'True si la casilla de adelante es calle.',
+  hay_camino_izquierda:'True si hay calle a la izquierda del carrito.',
+  hay_camino_derecha:'True si hay calle a la derecha del carrito.',
+  hay_paquete:'True si hay un paquete en la casilla del carrito.',
+  semaforo_en_rojo:'True si el semáforo de adelante está en rojo.',
+};
+const GRUPOS = [['orden', 'Órdenes'], ['estructura', 'Estructuras'], ['pregunta', 'Preguntas']];
+function pintarPaleta(){
+  const niv = NIVELES[S.nivel];
+  let html = '';
+  for (const [g, nombre] of GRUPOS){
+    const ps = niv.paleta.filter(k => PIEZAS[k].grupo === g);
+    if (!ps.length) continue;
+    html += `<div class="grupo"><span class="grupo-t">${nombre}</span>` +
+      ps.map(k => `<button class="chip ${g}" type="button" data-pieza="${k}">${escapar(PIEZAS[k].etiqueta || PIEZAS[k].txt)}</button>`).join('') + '</div>';
+  }
+  html += '<div class="grupo"><span class="grupo-t">Sangría</span><button class="chip sangria" type="button" data-sangria="1">⇥ meter</button><button class="chip sangria" type="button" data-sangria="-1">⇤ sacar</button></div>';
+  $('#paleta').innerHTML = html;
+  const dl = niv.paleta.map(k => `<dt class="chip-t ${PIEZAS[k].grupo}"><code>${escapar(PIEZAS[k].etiqueta || PIEZAS[k].txt)}</code></dt><dd>${escapar(AYUDA[k])}</dd>`).join('');
+  $('#funciones').innerHTML = dl;
+}
+$('#paleta').addEventListener('pointerdown', e => { if (e.target.closest('button') && !tactil) e.preventDefault(); });
+$('#paleta').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || corrida) return;
+  if (b.dataset.sangria) return sangrar(+b.dataset.sangria);
+  insertarPieza(PIEZAS[b.dataset.pieza]);
+});
+const sangria = l => l.match(/^ */)[0].length;
+function sangriaSugerida(lineas, i){
+  for (let k = i - 1; k >= 0; k--){
+    const l = lineas[k];
+    if (!l.trim() || l.trim().startsWith('#')) continue;
+    return sangria(l) + (l.replace(/#.*$/, '').trimEnd().endsWith(':') ? 4 : 0);
+  }
+  return 0;
+}
+function sangriaDelIf(lineas, i, tope){
+  for (let k = i; k >= 0; k--){
+    const l = lineas[k], t = l.trim();
+    if (!t) continue;
+    if (/^(if|elif)\b/.test(t) && sangria(l) <= tope) return sangria(l);
+  }
+  return Math.max(0, tope - 4);
+}
+function insertarPieza(p){
+  const v = ta.value, pos = ta.selectionStart;
+  if (p.modo === 'expr') return reemplazar(pos, ta.selectionEnd, p.txt, pos + p.txt.length);
+  const lineas = v.split('\n');
+  let i = v.slice(0, pos).split('\n').length - 1;
+  const inicioDe = k => lineas.slice(0, k).reduce((s, l) => s + l.length + 1, 0);
+  // si la línea del cursor tiene algo y la de abajo está vacía, se escribe en la de abajo
+  if (lineas[i].trim() && i + 1 < lineas.length && !lineas[i + 1].trim()) i++;
+  const vacia = !lineas[i].trim();
+  let ind;
+  if (p.modo === 'rama') ind = sangriaDelIf(lineas, vacia ? i - 1 : i, vacia ? Math.max(sangria(lineas[i]), sangriaSugerida(lineas, i)) : sangria(lineas[i]));
+  else if (vacia) ind = Math.max(sangria(lineas[i]), sangriaSugerida(lineas, i));
+  else ind = sangriaSugerida(lineas, i + 1);
+  const cabeza = ' '.repeat(ind) + p.txt;
+  const cuerpo = p.modo === 'linea' ? '' : '\n' + ' '.repeat(ind + 4);
+  let a, b, txt;
+  if (vacia){ a = inicioDe(i); b = a + lineas[i].length; txt = cabeza + cuerpo; }
+  else { a = b = inicioDe(i) + lineas[i].length; txt = '\n' + cabeza + cuerpo; }
+  const cursor = p.dentro ? a + txt.indexOf(cabeza) + cabeza.length - 1 : a + txt.length;
+  reemplazar(a, b, txt, cursor);
+}
+
+// =================== niveles y pruebas ===================
+function irANivel(i){
+  if (corrida) detener();
+  S.nivel = i; guardar();
+  const niv = NIVELES[i];
+  pruebas = niv.pruebas();
+  estadoPruebas = pruebas.map(() => null);
+  const ref = parsear(niv.solucion);
+  topes = pruebas.map(p => { const r = simular(ref, p); if (!r.ok) console.warn('La solución no pasa', niv.id, r); return Math.max(60, r.t * 4 + 30); });
+  if (niv.velocidad && S.vel < niv.velocidad) S.vel = niv.velocidad;
+  $('#eyebrow').textContent = `// nivel ${String(niv.num).padStart(2, '0')} · ${SECCIONES[niv.sec]}`;
+  $('#titulo').textContent = niv.titulo;
+  $('#objetivo').innerHTML = rico(niv.objetivo);
+  $('#lycan').hidden = !niv.lycan;
+  $('#lycan-frase').textContent = niv.lycan ? ` «${niv.lycan}»` : '';
+  $('#pista').hidden = true; $('#pista').innerHTML = rico(niv.pista);
+  $('#b-pista').textContent = 'Ver una pista';
+  $('#b-niveles-txt').textContent = `Nivel ${niv.num} de ${NIVELES.length}`;
+  ta.value = S.codigos[niv.id] ?? niv.inicial;
+  lineaActiva = 0; lineaError = 0;
+  pintarPaleta(); pintarVelocidad(); pintarEditor(); pintarEstrellasTotal();
+  limpiarConsola();
+  info('Escribe tu programa en Python y toca ▶ Ejecutar. Tu mismo programa tiene que pasar ' + (pruebas.length === 1 ? 'la prueba.' : `las ${pruebas.length} pruebas.`));
+  seleccionarPrueba(0);
+}
+function seleccionarPrueba(i){
+  pruebaSel = i;
+  mundo = new Mundo(pruebas[i]);
+  mundo.todosControles = new Set(mundo.controles);
+  reiniciarVista(); medir(); pintarPruebas(); actualizarEstado(); ocultarAviso();
+}
+function pintarPruebas(){
+  const cont = $('#pruebas');
+  cont.innerHTML = pruebas.map((_, i) => `<button class="tab${estadoPruebas[i] ? ' ' + estadoPruebas[i] : ''}" type="button" role="tab" aria-selected="${i === pruebaSel}" data-i="${i}"><i></i>Prueba ${i + 1}</button>`).join('') +
+    (pruebas.length > 1 ? '<span class="nota">el mismo programa, en todas</span>' : '');
+}
+$('#pruebas').addEventListener('click', e => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  if (corrida) detener();
+  seleccionarPrueba(+b.dataset.i);
+});
+function actualizarEstado(){
+  const m = mundo, partes = [`tiempo <b>${m.t}</b>`];
+  if (m.totalPaquetes) partes.push(`paquetes <b>${m.totalPaquetes - m.paquetes.size}/${m.totalPaquetes}</b>`);
+  if (m.totalControles) partes.push(`rombos <b>${m.totalControles - m.controles.size}/${m.totalControles}</b>`);
+  if (m.semaforos.size) partes.push(`semáforos <b>${m.semaforos.size}</b>`);
+  $('#estado').innerHTML = partes.map(p => `<span>${p}</span>`).join('');
+  const d = ['este', 'sur', 'oeste', 'norte'][m.carro.d];
+  cv.setAttribute('aria-label', `Mapa: el carrito mira hacia el ${d}; la meta está ${m.meta.x - m.carro.x} casillas a lo ancho y ${m.meta.y - m.carro.y} a lo alto.`);
+}
+function aviso(txt, clase){ const a = $('#aviso'); a.textContent = txt; a.className = 'aviso ' + (clase || ''); a.hidden = false; }
+function ocultarAviso(){ $('#aviso').hidden = true; }
+
+// ---------- consola ----------
+const consola = $('#consola');
+function limpiarConsola(){ consola.innerHTML = ''; }
+function escribir(txt, clase){ const p = document.createElement('p'); p.className = clase; p.textContent = txt; consola.appendChild(p); consola.scrollTop = consola.scrollHeight; return p; }
+const info = t => escribir(t, 'info');
+function mostrarErrorPy(e){
+  lineaError = e.linea || 0;
+  pintarEditor();
+  if (lineaError) mostrarLinea(lineaError);
+  const texto = (ta.value.split('\n')[e.linea - 1] || '').trim();
+  if (e.tipo === 'Ojo' || e.tipo === 'BucleInfinito'){
+    escribir(e.tipo === 'Ojo' ? `Ojo, línea ${e.linea}: ${e.message}.` : `Bucle infinito: ${e.message}.`, 'mal');
+  } else if (e.tipo === 'SyntaxError' || e.tipo === 'IndentationError'){
+    escribir(`  File "programa.py", line ${e.linea}\n    ${texto}`, 'tb');
+    escribir(`${e.tipo}: ${e.message}`, 'mal');
+  } else {
+    escribir(`Traceback (most recent call last):\n  File "programa.py", line ${e.linea}, in <module>\n    ${texto}`, 'tb');
+    escribir(`${e.tipo}: ${e.message}`, 'mal');
+  }
+  if (e.ayuda) escribir(e.ayuda, 'exp');
+  aviso(e.tipo === 'Ojo' ? 'Ojo con los paréntesis' : e.tipo === 'BucleInfinito' ? 'Bucle infinito' : `${e.tipo} en la línea ${e.linea}`, 'mal');
+  SON.error();
+}
+const FALLAS = {
+  choque: r => [`¡Pum! Chocaste en la línea ${r.linea}`, `avanzar() en la línea ${r.linea} llevó el carrito contra un edificio.`, 'Antes de avanzar, el carrito tiene que estar mirando hacia la calle.'],
+  rojo: r => ['Cruzaste en rojo', `En la línea ${r.linea} el carrito entró al paso de cebra con el semáforo en rojo.`, 'Mientras el semáforo de adelante esté en rojo, hay que esperar().'],
+  sinPaquete: r => ['Aquí no hay paquete', `En la línea ${r.linea} llamaste a recoger(), pero en esa casilla no hay ningún paquete.`, 'Pregunta primero con if hay_paquete():'],
+  noLlego: () => ['No llegaste a la meta', 'Tu programa terminó y el carrito no está en la meta.', 'Mira dónde quedó: ¿faltan órdenes, o sobran?'],
+  faltanPaquetes: r => [`Te ${r.n === 1 ? 'faltó 1 paquete' : `faltaron ${r.n} paquetes`}`, `Llegaste a la meta, pero ${r.n === 1 ? 'quedó 1 paquete' : `quedaron ${r.n} paquetes`} sin recoger.`, 'Hay que recoger cada paquete en su casilla, antes de llegar.'],
+  faltanControles: r => [`Te ${r.n === 1 ? 'faltó 1 rombo' : `faltaron ${r.n} rombos`}`, `Volviste al garaje, pero no pasaste por ${r.n === 1 ? '1 rombo' : `${r.n} rombos`}.`, 'Tienes que dar la vuelta completa a la manzana.'],
+  bucle: r => ['Bucle infinito', `En la línea ${r.linea} el carrito volvió a estar exactamente igual que antes: en la misma casilla, mirando hacia el mismo lado y en el mismo punto de tu programa.`, 'Desde ahí va a repetir lo mismo para siempre. Revisa la condición de tu while: ¿alguna vez deja de cumplirse?'],
+  gasolina: r => ['Se acabó la gasolina', `El carrito lleva ${mundo.t} movimientos y tu programa no termina.`, 'Seguramente es un bucle infinito: revisa la condición de tu while.'],
+};
+function informarFalla(r, i){
+  if (r.falla === 'python') mostrarErrorPy(r.error);
+  else {
+    const [corto, largo, exp] = FALLAS[r.falla](r);
+    if (r.linea){ lineaError = r.linea; pintarEditor(); }
+    escribir(`Prueba ${i + 1} ✗ ${largo}`, 'mal');
+    escribir(exp, 'exp');
+    aviso(corto, 'mal');
+    if (r.falla === 'noLlego' || r.falla.startsWith('faltan') || r.falla === 'bucle' || r.falla === 'gasolina') SON.error();
+  }
+  for (const [nombre, linea] of r.avisos || []){
+    escribir(`Ojo: en la línea ${linea} escribiste ${nombre} sin paréntesis. Así no se pregunta nada: Python ve la función misma y en un if o un while la toma como True. Escribe ${nombre}().`, 'ojo');
+  }
+}
+
+// =================== ejecución ===================
+function compilar(){
+  limpiarConsola();
+  lineaError = 0; lineaActiva = 0;
+  seleccionarPrueba(pruebaSel);
+  let ast;
+  try { ast = parsear(ta.value); }
+  catch (e){ if (e instanceof ErrorPy){ mostrarErrorPy(e); return null; } throw e; }
+  const niv = NIVELES[S.nivel], n = contarLineas(ta.value);
+  if (niv.maxLineas && n > niv.maxLineas){
+    pintarEditor();
+    escribir(`Tu programa tiene ${n} líneas y en este nivel el máximo es ${niv.maxLineas}.`, 'mal');
+    escribir(niv.sec === 'for' ? 'Busca lo que se repite y ponlo dentro de un for.' : 'Busca una forma más corta.', 'exp');
+    aviso(`Máximo ${niv.maxLineas} líneas`, 'mal');
+    SON.error();
+    return null;
+  }
+  if (!ast.length){ escribir('Tu programa está vacío: escribe al menos una orden.', 'mal'); return null; }
+  pintarEditor();
+  return ast;
+}
+function esperarClic(){ return new Promise(r => { corrida.despertar = r; }); }
+function despertar(){ const f = corrida && corrida.despertar; if (f){ corrida.despertar = null; f(); } }
+function detener(){ if (corrida){ corrida.cancelada = true; despertar(); } }
+async function ejecutar(){
+  if (corrida){
+    if (corrida.paso){ corrida.paso = false; despertar(); actualizarBotones(); }
+    else detener();
+    return;
+  }
+  const ast = compilar(); if (!ast) return;
+  await correr(ast, pruebas.map((_, i) => i), false);
+}
+async function pasoAPaso(){
+  if (corrida){ corrida.paso = true; despertar(); actualizarBotones(); return; }
+  const ast = compilar(); if (!ast) return;
+  await correr(ast, [pruebaSel], true);
+}
+async function correr(ast, indices, paso){
+  corrida = {cancelada:false, paso, despertar:null};
+  actualizarBotones();
+  if (matchMedia('(max-width: 940px)').matches) cajaMapa.scrollIntoView({block:'center', behavior:reducido ? 'auto' : 'smooth'});
+  for (const i of indices){
+    seleccionarPrueba(i);
+    const r = await correrPrueba(ast, i);
+    if (corrida.cancelada) break;
+    estadoPruebas[i] = r.ok ? 'ok' : 'mal';
+    pintarPruebas();
+    if (!r.ok){ informarFalla(r, i); break; }
+    escribir(`Prueba ${i + 1} ✓ llegó a la meta en ${mundo.t} ${mundo.t === 1 ? 'movimiento' : 'movimientos'}.`, 'ok');
+    aviso(`Prueba ${i + 1} superada`, 'ok');
+    SON.prueba();
+    if (i !== indices[indices.length - 1]) await esperarMs(Math.max(250, 700 / Math.min(S.vel, 4)));
+  }
+  const cancelada = corrida.cancelada;
+  corrida = null; lineaActiva = 0;
+  pintarEditor(); actualizarBotones();
+  if (cancelada){ info('Detenido.'); return; }
+  if (estadoPruebas.length && estadoPruebas.every(e => e === 'ok')) victoria();
+}
+async function correrPrueba(ast, i){
+  const m = mundo, ctx = nuevoCtx(m), gen = ejecutarBloque(ast, ctx), vistos = new Set();
+  const con = r => ({...r, avisos:[...ctx.avisos]});
+  for (;;){
+    if (corrida.cancelada) return {cancelada:true};
+    let r;
+    try { r = gen.next(); }
+    catch (e){ if (e instanceof ErrorPy) return con({ok:false, falla:'python', error:e}); throw e; }
+    if (r.done) break;
+    const ev = r.value;
+    if (ev.tipo === 'linea'){
+      marcarLinea(ev.linea);
+      if (corrida.paso) await esperarClic(); else await esperarMs(T_LINEA());
+    } else if (ev.tipo === 'print'){
+      escribir(ev.texto, 'salida');
+    } else if (ev.tipo === 'accion'){
+      marcarLinea(ev.linea);
+      const k = claveEstado(ev, ctx, m);
+      if (vistos.has(k)) return con({ok:false, falla:'bucle', linea:ev.linea});
+      vistos.add(k);
+      const res = m.aplicar(ev.nombre);
+      sonar(res);
+      actualizarEstado();
+      await animar(res, T_ACCION());
+      if (res.falla) return con({ok:false, falla:res.falla, linea:ev.linea});
+      if (m.t > topes[i]) return con({ok:false, falla:'gasolina', linea:ev.linea});
+    }
+  }
+  return con(resultadoFinal(m));
+}
+function actualizarBotones(){
+  const b = $('#b-ejecutar');
+  if (!corrida){ b.textContent = '▶ Ejecutar'; b.className = 'btn primario'; }
+  else if (corrida.paso){ b.textContent = '▶ Seguir'; b.className = 'btn primario'; }
+  else { b.textContent = '■ Detener'; b.className = 'btn parar'; }
+  $('#b-paso').textContent = corrida && corrida.paso ? 'Siguiente paso' : 'Paso a paso';
+  ta.readOnly = !!corrida;
+}
+function reiniciar(){ if (corrida) detener(); lineaActiva = 0; lineaError = 0; pintarEditor(); seleccionarPrueba(pruebaSel); }
+
+// =================== ventanas ===================
+function estrellasHTML(n, de = 3){ return '★'.repeat(n) + `<span class="v">${'★'.repeat(de - n)}</span>`; }
+const estrellasPara = (n, niv) => n <= niv.metaLineas ? 3 : n <= niv.metaLineas + 2 ? 2 : 1;
+function pintarEstrellasTotal(){
+  const total = NIVELES.reduce((s, n) => s + (S.estrellas[n.id] || 0), 0);
+  $('#estrellas-total').textContent = `★ ${total}/${NIVELES.length * 3}`;
+}
+const normalizar = s => s.split('\n').map(l => l.replace(/#.*$/, '').trimEnd()).filter(l => l.trim()).join('\n');
+function abrir(id){ const v = $(id); v.hidden = false; const f = v.querySelector('button'); if (f) f.focus(); }
+function cerrar(id){ $(id).hidden = true; }
+function victoria(){
+  const niv = NIVELES[S.nivel], n = contarLineas(ta.value), est = estrellasPara(n, niv);
+  S.estrellas[niv.id] = Math.max(S.estrellas[niv.id] || 0, est);
+  guardar(); pintarEstrellasTotal();
+  confeti(); SON.victoria();
+  const ultimo = S.nivel === NIVELES.length - 1;
+  const total = NIVELES.reduce((s, x) => s + (S.estrellas[x.id] || 0), 0);
+  let html = `<p class="eyebrow">// nivel ${String(niv.num).padStart(2, '0')} superado</p>
+    <h2 id="v-titulo">${pruebas.length === 1 ? '¡Llegaste a la meta!' : `¡Pasaste las ${pruebas.length} pruebas!`}</h2>
+    <div class="estrellas" aria-label="${est} de 3 estrellas">${estrellasHTML(est)}</div>
+    <p class="v-lineas">Tu programa tiene ${n} ${n === 1 ? 'línea' : 'líneas'}. ${est === 3 ? 'Ni una de más.' : `Para ★★★: ${niv.metaLineas} o menos.`}</p>
+    <h3>Lo que aprendiste</h3><p>${rico(niv.aprende)}</p>`;
+  if (niv.lycan) html += `<div class="v-lycan"><h3>Por qué lycan se equivocaba</h3><p class="cita">«${escapar(niv.lycan)}»</p><p>${rico(niv.lycanPor)}</p></div>`;
+  if (normalizar(ta.value) !== normalizar(niv.solucion)) html += `<h3>Otra forma de hacerlo</h3><pre class="codigo">${niv.solucion.trimEnd().split('\n').map(resaltar).join('\n')}</pre>`;
+  if (ultimo) html += `<h3>¡Terminaste los ${NIVELES.length} niveles!</h3><p>Llevas ${total} de ${NIVELES.length * 3} estrellas. Esto y mucho más está en el curso de Introducción a los algoritmos.</p>`;
+  html += `<p class="v-curso">En el curso: <a href="https://www.youtube.com/@bucledelycan" target="_blank" rel="noopener">${escapar(niv.curso)}</a> · El bucle de lycan</p>
+    <div class="v-botones">${ultimo ? '<button class="btn primario" type="button" data-v="niveles">Ver los niveles</button>' : '<button class="btn primario" type="button" data-v="sig">Siguiente nivel →</button>'}
+    <button class="btn" type="button" data-v="quedarse">Mejorar mi programa</button></div>`;
+  $('#victoria').innerHTML = html;
+  abrir('#velo-victoria');
+}
+$('#victoria').addEventListener('click', e => {
+  const b = e.target.closest('[data-v]'); if (!b) return;
+  cerrar('#velo-victoria');
+  if (b.dataset.v === 'sig') irANivel(S.nivel + 1);
+  if (b.dataset.v === 'niveles') abrirNiveles();
+});
+function abrirNiveles(){
+  let html = `<div class="modal-cab"><h2 id="n-titulo">Niveles</h2><button class="btn icono" type="button" data-cerrar aria-label="Cerrar">×</button></div>`;
+  for (const sec in SECCIONES){
+    const ns = NIVELES.filter(n => n.sec === sec);
+    html += `<p class="seccion-n">// ${SECCIONES[sec]}</p><div class="rejilla-n">` + ns.map(n => {
+      const e = S.estrellas[n.id] || 0;
+      return `<button class="nv${n.num - 1 === S.nivel ? ' actual' : ''}${e ? ' hecho' : ''}" type="button" data-n="${n.num - 1}">
+        <span class="nv-num">${String(n.num).padStart(2, '0')}</span><span class="nv-tit">${escapar(n.titulo)}</span><span class="nv-est">${estrellasHTML(e)}</span></button>`;
+    }).join('') + '</div>';
+  }
+  $('#niveles').innerHTML = html;
+  abrir('#velo-niveles');
+}
+$('#niveles').addEventListener('click', e => {
+  if (e.target.closest('[data-cerrar]')) return cerrar('#velo-niveles');
+  const b = e.target.closest('[data-n]'); if (!b) return;
+  cerrar('#velo-niveles'); irANivel(+b.dataset.n);
+});
+document.querySelectorAll('.velo').forEach(v => v.addEventListener('click', e => { if (e.target === v) v.hidden = true; }));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.velo').forEach(v => v.hidden = true); });
+
+// =================== controles ===================
+function pintarVelocidad(){
+  $('#vel').innerHTML = VELOCIDADES.map(([v, t]) => `<button type="button" aria-pressed="${S.vel === v}" data-v="${v}" title="Velocidad ${t}">${t}</button>`).join('');
+}
+$('#vel').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.vel = +b.dataset.v; guardar(); pintarVelocidad(); });
+$('#b-ejecutar').addEventListener('click', ejecutar);
+$('#b-paso').addEventListener('click', pasoAPaso);
+$('#b-reiniciar').addEventListener('click', reiniciar);
+$('#b-niveles').addEventListener('click', abrirNiveles);
+$('#b-pista').addEventListener('click', () => { const p = $('#pista'); p.hidden = !p.hidden; $('#b-pista').textContent = p.hidden ? 'Ver una pista' : 'Ocultar la pista'; });
+let borrarArmado = 0;
+$('#b-borrar').addEventListener('click', () => {
+  const b = $('#b-borrar');
+  if (!borrarArmado){ b.textContent = '¿Seguro? Se pierde tu código. Toca otra vez'; borrarArmado = setTimeout(() => { borrarArmado = 0; b.textContent = 'Volver al código inicial'; }, 3500); return; }
+  clearTimeout(borrarArmado); borrarArmado = 0; b.textContent = 'Volver al código inicial';
+  if (corrida) detener();
+  ta.value = NIVELES[S.nivel].inicial; alCambiar(); reiniciar(); limpiarConsola(); info('Volviste al código inicial.');
+});
+const bSonido = $('#b-sonido');
+function pintarSonido(){ bSonido.setAttribute('aria-pressed', String(S.sonido)); bSonido.title = S.sonido ? 'Sonido encendido' : 'Sonido apagado'; }
+bSonido.addEventListener('click', () => { S.sonido = !S.sonido; guardar(); pintarSonido(); if (S.sonido) SON.girar(); });
+
+new ResizeObserver(() => medir()).observe(cajaMapa);
+pintarSonido();
+irANivel(S.nivel);
+requestAnimationFrame(dibujar);
+</script>
+</body>
+</html>
