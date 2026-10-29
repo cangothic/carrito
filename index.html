@@ -2653,7 +2653,7 @@ function liberar(obj){
 // Hacia dónde abre cada calle de Kenney tal como viene (este = +X, norte = -Z); cada casilla gira la suya.
 const LADOS = ['E', 'N', 'W', 'S'];   // en este orden los recorre un giro de 90° alrededor de Y
 const CALLES = {recta:['E', 'W'], curva:['W', 'S'], t:['E', 'W', 'S'], cruce:['E', 'N', 'W', 'S'], fin:['E'], cebra:['E', 'W'], sola:[]};
-const EDIFICIOS = 'abcdfgh';
+const EDIFICIOS = 'abcdfgh', TORRES = 'abcde';
 function calleDe(m, x, y){
   const abiertos = [['E', 1, 0], ['N', 0, -1], ['W', -1, 0], ['S', 0, 1]].filter(([, dx, dy]) => m.libre(x + dx, y + dy)).map(([l]) => l);
   const n = abiertos.length, tiene = l => abiertos.includes(l);
@@ -2719,7 +2719,13 @@ function construir(m){
   const calles = {}, edificios = {}, parques = [], cebras = [];
   for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++){
     const c = m.celdas[y][x];
-    if (c === '#') (edificios[EDIFICIOS[Math.floor(hash(x, y, 5) * EDIFICIOS.length)]] ??= []).push([x, y]);
+    if (c === '#'){
+      // las torres, en casillas que no dan a la calle (así no la tapan); en la orilla, edificios bajos
+      const adentro = [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => !m.libre(x + dx, y + dy));
+      const nombre = adentro && hash(x, y, 13) < 0.65 ? 'torre_' + TORRES[Math.floor(hash(x, y, 5) * TORRES.length)]
+        : 'edificio_' + EDIFICIOS[Math.floor(hash(x, y, 5) * EDIFICIOS.length)];
+      (edificios[nombre] ??= []).push([x, y]);
+    }
     else if (c === '*') parques.push([x, y]);
     else {
       const [nombre, k] = calleDe(m, x, y);
@@ -2728,9 +2734,12 @@ function construir(m){
     }
   }
 
-  // calles de Kenney, giradas según por dónde sigue la calle; edificios girados al azar
+  // calles de Kenney, giradas según por dónde sigue la calle; edificios girados al azar y de altos algo distintos
   for (const nombre in calles) repetir('calle_' + nombre, calles[nombre], ([x, y, k]) => enCasilla(x, y, k));
-  for (const letra in edificios) repetir('edificio_' + letra, edificios[letra], ([x, y]) => enCasilla(x, y, Math.floor(hash(x, y, 7) * 4)));
+  for (const nombre in edificios) repetir(nombre, edificios[nombre], ([x, y]) => {
+    enCasilla(x, y, Math.floor(hash(x, y, 7) * 4));
+    E.y *= 0.8 + hash(x, y, 8) * 0.4;
+  });
 
   // parques: pasto con un árbol grande y uno chico
   instancias(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), lambert(0x0E3326), parques, ([x, y]) => {
