@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap">
 <!-- three.js para la realidad aumentada (?ar); solo se descarga en ese modo -->
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.0/build/three.module.min.js"}}</script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.0/build/three.module.min.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.0/examples/jsm/"}}</script>
 <style>
 /* Un solo tema, a propósito: el neón del canal sobre tinta (marca/README.md).
    El mapa a la izquierda y el programa a la derecha; en el celular, uno debajo del otro. */
@@ -251,7 +251,7 @@ pre.codigo{margin:0;padding:10px 14px;background:var(--ink-950);border:1px solid
 /* el negro va en <html>: un fondo en <body> se pintaría encima del video, que está detrás (z-index negativo) */
 .modo-ar{overflow:hidden;height:100%}
 html.modo-ar{background:#000}
-body.modo-ar{background:transparent}
+body.modo-ar{background:transparent;touch-action:none}   /* el pellizco agranda la ciudad, no la página */
 /* el video de AR.js es más grande que la pantalla (la cubre recortando): fijo, para que no agrande la página */
 .modo-ar #arjs-video,.modo-ar .fuente-ar{position:fixed!important;top:0!important;left:0!important;z-index:-2}
 .modo-ar .barra{
@@ -2339,7 +2339,7 @@ requestAnimationFrame(dibujar);
 // carrito en su animación), los mismos que pinta el mapa 2D. Sin cámara, la ciudad se ve en 3D y se gira arrastrando.
 const AR_JS = 'https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.8/three.js/build/ar-threex.mjs';
 let THREE, render = null, escena, camara, ancla, fuente = null, contexto = null, marcador = null;
-let ciudad = null, firma = '', din = null, viendo = null;
+let ciudad = null, firma = '', din = null, viendo = null, modelos = null;
 let modAR = null, ajustarAR = null, vertical = null, rehaciendo = false;
 const orbita = {az:-0.45, el:1.05};
 const texturas = {};
@@ -2370,6 +2370,14 @@ async function iniciar(tipo, url){
   zoom = Math.min(4, Math.max(0.4, S[claveZoom] || 1));
   try {
     THREE = await import('three');
+    // la ciudad de Blender (ar/modelos.py); sus mallas y materiales se comparten entre ciudades
+    const {GLTFLoader} = await import('three/addons/loaders/GLTFLoader.js');
+    modelos = (await new GLTFLoader().loadAsync('ar/ciudad.glb')).scene;
+    modelos.traverse(o => {
+      if (!o.isMesh) return;
+      o.geometry.userData.fija = true;
+      for (const mat of [].concat(o.material)){ mat.userData.fija = true; if (mat.map) mat.map.userData.fija = true; }
+    });
     const AR = tipo === 'orbita' ? null : await import(AR_JS);
     montarEscena();
     if (AR) await montarAR(AR, tipo, url); else montarOrbita();
@@ -2477,12 +2485,14 @@ async function rehacerContexto(){
 }
 
 // Un dedo gira la ciudad (solo sin cámara); dos dedos la agrandan o achican; la rueda también.
+// El lienzo está detrás de la página (z-index negativo): los toques caen en el <body>, así que se escuchan en
+// toda la ventana y solo cuentan los que no caen sobre un panel.
 function gestos(lienzo, girar){
   const dedos = new Map();
   let separacion = 0;
-  lienzo.style.touchAction = 'none';
-  lienzo.addEventListener('pointerdown', e => { dedos.set(e.pointerId, [e.clientX, e.clientY]); lienzo.setPointerCapture(e.pointerId); separacion = 0; });
-  lienzo.addEventListener('pointermove', e => {
+  const libre = e => e.target === document.body || e.target === document.documentElement || e.target === lienzo;
+  addEventListener('pointerdown', e => { if (libre(e)){ dedos.set(e.pointerId, [e.clientX, e.clientY]); separacion = 0; } });
+  addEventListener('pointermove', e => {
     const antes = dedos.get(e.pointerId);
     if (!antes) return;
     const ahora = [e.clientX, e.clientY];
@@ -2497,9 +2507,9 @@ function gestos(lienzo, girar){
     }
   });
   const soltar = e => { dedos.delete(e.pointerId); separacion = 0; };
-  lienzo.addEventListener('pointerup', soltar);
-  lienzo.addEventListener('pointercancel', soltar);
-  lienzo.addEventListener('wheel', e => { e.preventDefault(); zoomar(e.deltaY > 0 ? 0.92 : 1.08); }, {passive:false});
+  addEventListener('pointerup', soltar);
+  addEventListener('pointercancel', soltar);
+  addEventListener('wheel', e => { if (!libre(e)) return; e.preventDefault(); zoomar(e.deltaY > 0 ? 0.92 : 1.08); }, {passive:false});
 }
 
 function montarOrbita(){
@@ -2569,7 +2579,8 @@ function centrarEnLoLibre(){
 
 // ---------- la ciudad ----------
 // El marcador mide 1 de lado y su plano es XZ, con Y hacia arriba; la ciudad mide 2 en su lado más largo.
-// La fila 0 del mapa queda hacia el borde de arriba de la tarjeta (-Z).
+// La fila 0 del mapa queda hacia el borde de arriba de la tarjeta (-Z). Las piezas salen de ar/ciudad.glb, armado
+// en Blender por ar/modelos.py con modelos de Kenney: miden 1 por casilla y aquí se ponen a la escala s.
 function lienzoTextura(w, h, pintar){
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
@@ -2579,26 +2590,32 @@ function lienzoTextura(w, h, pintar){
   tex.userData.fija = true;
   return tex;
 }
-function ventanas(k){
-  return texturas['v' + k] ??= lienzoTextura(64, 128, g => {
-    g.fillStyle = '#000'; g.fillRect(0, 0, 64, 128);
-    for (let f = 0; f < 8; f++) for (let c = 0; c < 4; c++){
-      const v = hash(c, f, 40 + k);
-      if (v < 0.45) continue;
-      g.fillStyle = NEON[Math.floor(v * 97) % NEON.length];
-      g.globalAlpha = 0.55 + v * 0.4;
-      g.fillRect(c * 16 + 4, f * 16 + 5, 8, 7);
-    }
-  });
-}
+// Lo que viene del GLB (userData.fija) se comparte entre ciudades y no se libera.
 function liberar(obj){
   obj.traverse(o => {
-    o.geometry?.dispose();
+    if (o.geometry && !o.geometry.userData.fija) o.geometry.dispose();
     for (const mat of [].concat(o.material || [])){
+      if (mat.userData.fija) continue;
       for (const tex of [mat.map, mat.emissiveMap]) if (tex && !tex.userData.fija) tex.dispose();
       mat.dispose();
     }
   });
+}
+
+// Hacia dónde abre cada calle de Kenney tal como viene (este = +X, norte = -Z); cada casilla gira la suya.
+const LADOS = ['E', 'N', 'W', 'S'];   // en este orden los recorre un giro de 90° alrededor de Y
+const CALLES = {recta:['E', 'W'], curva:['W', 'S'], t:['E', 'W', 'S'], cruce:['E', 'N', 'W', 'S'], fin:['E'], cebra:['E', 'W'], sola:[]};
+const EDIFICIOS = 'abcdfgh';
+function calleDe(m, x, y){
+  const abiertos = [['E', 1, 0], ['N', 0, -1], ['W', -1, 0], ['S', 0, 1]].filter(([, dx, dy]) => m.libre(x + dx, y + dy)).map(([l]) => l);
+  const n = abiertos.length, tiene = l => abiertos.includes(l);
+  const nombre = n === 4 ? 'cruce' : n === 3 ? 't' : n === 1 ? 'fin' : n === 0 ? 'sola'
+    : tiene('E') === tiene('W') ? (m.celdas[y][x] === 'S' ? 'cebra' : 'recta') : 'curva';
+  for (let k = 0; k < 4; k++){
+    const girados = CALLES[nombre].map(l => LADOS[(LADOS.indexOf(l) + k) % 4]);
+    if (girados.every(tiene)) return [nombre, k];
+  }
+  return [nombre, 0];
 }
 
 function construir(m){
@@ -2610,7 +2627,7 @@ function construir(m){
   ancla.add(ciudad);
   const s = 2 / Math.max(m.w, m.h);
   const pos = (x, y) => [(x - m.w / 2 + 0.5) * s, (y - m.h / 2 + 0.5) * s];
-  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), E = new THREE.Vector3();
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), E = new THREE.Vector3(), ARRIBA = new THREE.Vector3(0, 1, 0);
   const lambert = (color, extra = {}) => new THREE.MeshLambertMaterial({color, ...extra});
   const basico = (color, extra = {}) => new THREE.MeshBasicMaterial({color, ...extra});
   const malla = (geo, mat, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); ciudad.add(o); return o; };
@@ -2620,12 +2637,29 @@ function construir(m){
     lista.forEach((e, i) => { colocar(e); inst.setMatrixAt(i, M.compose(P, Q, E)); });
     ciudad.add(inst);
   };
-  const lineas = (puntos, colores, mat) => {
-    const geo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(puntos, 3));
-    if (colores) geo.setAttribute('color', new THREE.Float32BufferAttribute(colores, 3));
-    ciudad.add(new THREE.LineSegments(geo, mat));
+  // una pieza del GLB repetida en muchas casillas: una sola llamada de dibujo por malla
+  const repetir = (nombre, lista, colocar) => {
+    if (!lista.length) return;
+    const raiz = modelos.getObjectByName(nombre);
+    raiz.updateMatrixWorld(true);
+    const inversa = raiz.matrixWorld.clone().invert(), local = new THREE.Matrix4(), total = new THREE.Matrix4();
+    raiz.traverse(o => {
+      if (!o.isMesh) return;
+      local.multiplyMatrices(inversa, o.matrixWorld);
+      const inst = new THREE.InstancedMesh(o.geometry, o.material, lista.length);
+      lista.forEach((e, i) => { colocar(e); inst.setMatrixAt(i, total.multiplyMatrices(M.compose(P, Q, E), local)); });
+      ciudad.add(inst);
+    });
   };
-  Q.identity();
+  // una pieza suelta del GLB, para lo que cambia durante la prueba
+  const copia = (nombre, x, y, z, giro = 0, padre = ciudad) => {
+    const o = modelos.getObjectByName(nombre).clone(true);
+    o.position.set(x, y, z); o.rotation.set(0, giro, 0); o.scale.setScalar(s);
+    padre.add(o);
+    return o;
+  };
+  const enCasilla = (x, y, k = 0) => { const [px, pz] = pos(x, y); P.set(px, 0, pz); Q.setFromAxisAngle(ARRIBA, k * Math.PI / 2); E.set(s, s, s); };
+  const sobre = s * 0.03;   // lo que va encima de la calle de Kenney, que tiene 0,02 de alto
 
   // la maqueta: una losa oscura con el borde en neón
   const losa = new THREE.BoxGeometry(m.w * s + s * 0.3, s * 0.3, m.h * s + s * 0.3);
@@ -2634,136 +2668,92 @@ function construir(m){
   borde.position.y = -s * 0.15;
   ciudad.add(borde);
 
-  const calles = [], edificios = [[], [], []], parques = [], cebras = [];
+  const calles = {}, edificios = {}, parques = [], cebras = [];
   for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++){
     const c = m.celdas[y][x];
-    if (c === '#') edificios[Math.floor(hash(x, y, 5) * 3)].push([x, y]);
+    if (c === '#') (edificios[EDIFICIOS[Math.floor(hash(x, y, 5) * EDIFICIOS.length)]] ??= []).push([x, y]);
     else if (c === '*') parques.push([x, y]);
-    else { calles.push([x, y]); if (c === 'S') cebras.push([x, y]); }
-  }
-
-  // calles y sus líneas punteadas
-  const plano = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-  instancias(plano, lambert(0x2A3A5E), calles, ([x, y]) => { const [px, pz] = pos(x, y); P.set(px, 0.002, pz); E.set(s, 1, s); });
-  const rayas = [];
-  for (const [x, y] of calles){
-    if (m.celdas[y][x] === 'S') continue;
-    const [px, pz] = pos(x, y);
-    for (const [dx, dy] of DIRS){
-      if (!m.libre(x + dx, y + dy)) continue;
-      for (const [a, b] of [[0.06, 0.2], [0.3, 0.44]]) rayas.push(px + dx * a * s, 0.004, pz + dy * a * s, px + dx * b * s, 0.004, pz + dy * b * s);
+    else {
+      const [nombre, k] = calleDe(m, x, y);
+      (calles[nombre] ??= []).push([x, y, k]);
+      if (c === 'S') cebras.push([x, y]);
     }
   }
-  lineas(rayas, null, new THREE.LineBasicMaterial({color:0xD6DFF0}));
 
-  // pasos de cebra: franjas a lo largo de la calle
-  const franjas = [];
-  for (const [x, y] of cebras){
-    const horizontal = m.libre(x - 1, y) || m.libre(x + 1, y);
-    for (let k = 0; k < 5; k++) franjas.push([x, y, horizontal, (k - 2) * 0.155]);
-  }
-  instancias(new THREE.BoxGeometry(1, 1, 1), lambert(0xEEF3FC), franjas, ([x, y, h, o]) => {
+  // calles de Kenney, giradas según por dónde sigue la calle; edificios girados al azar
+  for (const nombre in calles) repetir('calle_' + nombre, calles[nombre], ([x, y, k]) => enCasilla(x, y, k));
+  for (const letra in edificios) repetir('edificio_' + letra, edificios[letra], ([x, y]) => enCasilla(x, y, Math.floor(hash(x, y, 7) * 4)));
+
+  // parques: pasto con un árbol grande y uno chico
+  instancias(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), lambert(0x1F5B3F), parques, ([x, y]) => {
+    const [px, pz] = pos(x, y); P.set(px, 0.002, pz); Q.identity(); E.set(s * 0.92, 1, s * 0.92);
+  });
+  const arbol = (dx, dz, k) => ([x, y]) => {
     const [px, pz] = pos(x, y);
-    if (h){ P.set(px, 0.005, pz + o * s); E.set(s * 0.6, 0.002, s * 0.085); }
-    else { P.set(px + o * s, 0.005, pz); E.set(s * 0.085, 0.002, s * 0.6); }
-  });
+    P.set(px + (dx + (hash(x, y, k) - 0.5) * 0.12) * s, 0, pz + (dz + (hash(x, y, k + 5) - 0.5) * 0.12) * s);
+    Q.setFromAxisAngle(ARRIBA, hash(x, y, k + 9) * Math.PI * 2); E.setScalar(s * (0.85 + hash(x, y, k + 3) * 0.3));
+  };
+  repetir('arbol_grande', parques, arbol(-0.18, -0.15, 1));
+  repetir('arbol_chico', parques, arbol(0.2, 0.17, 2));
 
-  // edificios: tres tandas, cada una con sus ventanas; la azotea con el borde en neón
-  const caja = new THREE.BoxGeometry(1, 1, 1), techo = lambert(0x232E4D), contornos = [], colores = [];
-  edificios.forEach((lista, k) => {
-    const lado = lambert(0x1B2643, {emissive:0xffffff, emissiveMap:ventanas(k), emissiveIntensity:1.1});
-    instancias(caja, [lado, lado, techo, techo, lado, lado], lista, ([x, y]) => {
-      // bajos, para que desde un costado no tapen la calle ni el carrito
-      const [px, pz] = pos(x, y), alto = s * (0.18 + hash(x, y, 1) * 0.42);
-      P.set(px, alto / 2, pz); E.set(s * 0.8, alto, s * 0.8);
-      const c = new THREE.Color(NEON[Math.floor(hash(x, y) * NEON.length)]), a = s * 0.4, h = alto + 0.001;
-      const esquinas = [[-a, -a], [a, -a], [a, a], [-a, a]];
-      for (let i = 0; i < 4; i++){
-        const [ax, az] = esquinas[i], [bx, bz] = esquinas[(i + 1) % 4];
-        contornos.push(px + ax, h, pz + az, px + bx, h, pz + bz);
-        colores.push(c.r, c.g, c.b, c.r, c.g, c.b);
-      }
-    });
-  });
-  if (contornos.length) lineas(contornos, colores, new THREE.LineBasicMaterial({vertexColors:true}));
-
-  // parques con dos árboles
-  instancias(plano, lambert(0x0B2A20), parques, ([x, y]) => { const [px, pz] = pos(x, y); P.set(px, 0.003, pz); E.set(s * 0.9, 1, s * 0.9); });
-  const arboles = parques.flatMap(([x, y]) => [[x, y, 0], [x, y, 1]]);
-  instancias(new THREE.SphereGeometry(1, 12, 8), lambert(0x1E7A55, {emissive:0x3CF0A5, emissiveIntensity:0.25}), arboles, ([x, y, k]) => {
-    const [px, pz] = pos(x, y), r = s * (0.13 + hash(x, y, k + 9) * 0.07);
-    P.set(px + (hash(x, y, k) - 0.5) * s * 0.45, r * 0.9, pz + (hash(x, y, k + 5) - 0.5) * s * 0.45); E.set(r, r, r);
-  });
-
-  // la meta: cuadros blancos y negros y un haz de luz verde
+  // la meta: cuadros blancos y negros, el banderín y un haz de luz verde
   const [mx, mz] = pos(m.meta.x, m.meta.y);
   const ajedrez = texturas.ajedrez ??= lienzoTextura(64, 64, g => {
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++){ g.fillStyle = (i + j) % 2 ? '#0C1322' : '#EEF3FC'; g.fillRect(i * 16, j * 16, 16, 16); }
   });
-  malla(new THREE.PlaneGeometry(s * 0.78, s * 0.78).rotateX(-Math.PI / 2), basico(0xffffff, {map:ajedrez}), mx, 0.005, mz);
+  malla(new THREE.PlaneGeometry(s * 0.7, s * 0.7).rotateX(-Math.PI / 2), basico(0xffffff, {map:ajedrez}), mx, sobre, mz);
+  copia('meta', mx - s * 0.36, sobre, mz - s * 0.36);
   const haz = basico(0x3CF0A5, {transparent:true, opacity:0.2, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending});
   malla(new THREE.CylinderGeometry(s * 0.34, s * 0.34, s * 2.4, 32, 1, true), haz, mx, s * 1.2, mz);
 
-  // paquetes y rombos de control (cambian durante la prueba)
+  // paquetes (la caja del Car Kit) y rombos de control: cambian durante la prueba
   const paquetes = new Map(), controles = new Map();
-  const cajita = new THREE.BoxGeometry(s * 0.3, s * 0.3, s * 0.3);
   for (const k of m.paquetes){
     const [x, y] = k.split(',').map(Number), [px, pz] = pos(x, y);
-    const p = malla(cajita, lambert(0xFFC94D, {emissive:0x8a5a00, emissiveIntensity:0.7}), px, s * 0.24, pz);
-    p.add(new THREE.LineSegments(new THREE.EdgesGeometry(cajita), new THREE.LineBasicMaterial({color:0x6b4300})));
-    paquetes.set(k, p);
+    paquetes.set(k, copia('paquete', px, sobre, pz, hash(x, y, 11) * Math.PI));
   }
   for (const k of m.controles){
     const [x, y] = k.split(',').map(Number), [px, pz] = pos(x, y);
     controles.set(k, malla(new THREE.OctahedronGeometry(s * 0.16), lambert(0xC4B1FF, {emissive:0xC4B1FF, emissiveIntensity:0.5}), px, s * 0.3, pz));
   }
 
-  // semáforos: poste con sus dos luces y una barra de pare en cada entrada del paso de cebra
+  // semáforos: el de Blender en la esquina del paso de cebra, con sus dos luces, y una barra de pare en cada entrada
   const semaforos = [];
   for (const [x, y] of cebras){
     const [px, pz] = pos(x, y), horizontal = m.libre(x - 1, y) || m.libre(x + 1, y);
-    const barra = basico(0xFF4D5E), rojo = basico(0xFF4D5E), verde = basico(0x10382a);
+    const barra = basico(0xFF4D5E);
     for (const lado of [-1, 1]){
-      if (horizontal) malla(new THREE.BoxGeometry(s * 0.05, s * 0.02, s * 0.8), barra, px + lado * 0.47 * s, 0.006, pz);
-      else malla(new THREE.BoxGeometry(s * 0.8, s * 0.02, s * 0.05), barra, px, 0.006, pz + lado * 0.47 * s);
+      if (horizontal) malla(new THREE.BoxGeometry(s * 0.05, s * 0.02, s * 0.8), barra, px + lado * 0.47 * s, sobre, pz);
+      else malla(new THREE.BoxGeometry(s * 0.8, s * 0.02, s * 0.05), barra, px, sobre, pz + lado * 0.47 * s);
     }
-    const ex = px + s * 0.42, ez = pz - s * 0.42;
-    malla(new THREE.CylinderGeometry(s * 0.022, s * 0.022, s * 0.9, 8), lambert(0x45547A), ex, s * 0.45, ez);
-    malla(new THREE.BoxGeometry(s * 0.08, s * 0.24, s * 0.08), lambert(0x04060C), ex, s * 0.98, ez);
-    malla(new THREE.SphereGeometry(s * 0.05, 12, 8), rojo, ex, s * 1.04, ez);
-    malla(new THREE.SphereGeometry(s * 0.05, 12, 8), verde, ex, s * 0.92, ez);
-    semaforos.push({x, y, barra:barra.color, rojo:rojo.color, verde:verde.color});
+    const sem = copia('semaforo', px + s * 0.42, 0, pz - s * 0.42), luces = {};
+    sem.traverse(o => { if (o.isMesh && /^luz_/.test(o.name)){ o.material = o.material.clone(); luces[o.name] = o.material; } });
+    semaforos.push({x, y, barra:barra.color, rojo:luces.luz_roja, verde:luces.luz_verde});
   }
 
-  // el carrito: cian, con cabina oscura, faros y las orejas de lobo en el techo
+  // el carrito: el de Blender (cian y magenta, con orejas de lobo), un brillo cian debajo y una flecha encima
   const carro = new THREE.Group();
-  const L = s * 0.74, W = s * 0.48, H = s * 0.16, base = s * 0.06;
-  const pintura = lambert(0x22D3FF, {emissive:0x0A7FA8, emissiveIntensity:0.7});
-  const parte = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); carro.add(o); return o; };
-  parte(new THREE.BoxGeometry(L, H, W), pintura, 0, base + H / 2, 0);
-  parte(new THREE.BoxGeometry(L * 0.5, H * 0.75, W * 0.82), lambert(0x070B14, {emissive:0x22D3FF, emissiveIntensity:0.08}), -L * 0.05, base + H * 1.35, 0);
-  const rueda = new THREE.CylinderGeometry(s * 0.065, s * 0.065, s * 0.05, 14).rotateX(Math.PI / 2), goma = lambert(0x0b0e16);
-  for (const [a, b] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) parte(rueda, goma, a * L * 0.31, s * 0.065, b * W * 0.5);
-  const faro = basico(0xFFE7A8), trasera = basico(0x8a1a55);
-  for (const b of [-1, 1]){
-    parte(new THREE.BoxGeometry(s * 0.02, s * 0.04, s * 0.08), faro, L / 2, base + H * 0.6, b * W * 0.3);
-    parte(new THREE.BoxGeometry(s * 0.02, s * 0.04, s * 0.08), trasera, -L / 2, base + H * 0.6, b * W * 0.3);
-    const oreja = parte(new THREE.ConeGeometry(s * 0.035, s * 0.08, 4), basico(0xFF2E9A), -L * 0.2, base + H * 1.72 + s * 0.04, b * W * 0.22);
-    oreja.rotation.x = b * 0.25;
-  }
+  const modeloCarro = copia('carro', 0, sobre * 0.5, 0, 0, carro);
+  let pintura = null;
+  modeloCarro.traverse(o => {
+    if (!o.isMesh) return;
+    o.material = o.material.clone();   // propio, para teñirlo de rojo cuando choca
+    if (o.material.name === 'carro') pintura = o.material;
+  });
   const brillo = texturas.brillo ??= lienzoTextura(64, 64, g => {
     const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
     gr.addColorStop(0, 'rgba(34,211,255,.9)'); gr.addColorStop(1, 'rgba(34,211,255,0)');
     g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
   });
-  parte(new THREE.PlaneGeometry(s * 1.1, s * 0.9).rotateX(-Math.PI / 2),
-    basico(0xffffff, {map:brillo, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}), 0, 0.006, 0);
-  // una flecha cian flotando encima, para encontrar el carrito de un vistazo
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(s * 1.1, s * 0.9).rotateX(-Math.PI / 2),
+    basico(0xffffff, {map:brillo, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}));
+  halo.position.y = sobre;
+  carro.add(halo);
   const baliza = new THREE.Mesh(new THREE.ConeGeometry(s * 0.13, s * 0.24, 4).rotateX(Math.PI), basico(0x22D3FF));
   carro.add(baliza);
   ciudad.add(carro);
 
-  din = {s, pos, carro, baliza, pintura, trasera:trasera.color, paquetes, controles, semaforos, haz};
+  din = {s, pos, carro, baliza, pintura, paquetes, controles, semaforos, haz};
 }
 
 function animarCiudad(t){
@@ -2779,13 +2769,11 @@ function animarCiudad(t){
   din.carro.rotation.y = -vis.ang;
   din.baliza.position.y = s * (0.72 + 0.07 * Math.sin(t / 250));
   din.baliza.rotation.y = t / 500;
-  din.trasera.setHex(vis.freno > 0 ? 0xFF66B5 : 0x8a1a55);
-  din.pintura.emissive.setHex(vis.flash > 0 ? 0xFF4D5E : 0x0A7FA8);
+  din.pintura?.emissive.setHex(vis.flash > 0 ? 0xFF4D5E : 0x000000);
   if (vis.flash > 0) vis.flash = Math.max(0, vis.flash - 0.03);
   for (const [k, p] of din.paquetes){
     p.visible = mundo.paquetes.has(k);
-    p.rotation.y = t / 700;
-    p.position.y = s * (0.24 + 0.04 * Math.sin(t / 300 + p.position.x * 9));
+    p.position.y = s * (0.05 + 0.03 * Math.sin(t / 300 + p.position.x * 9));
   }
   for (const [k, c] of din.controles){
     const color = mundo.controles.has(k) ? 0xC4B1FF : 0x3CF0A5;
@@ -2795,8 +2783,9 @@ function animarCiudad(t){
   for (const sm of din.semaforos){
     const rojo = mundo.rojo(sm.x, sm.y);
     sm.barra.setHex(rojo ? 0xFF4D5E : 0x3CF0A5);
-    sm.rojo.setHex(rojo ? 0xFF4D5E : 0x40141b);
-    sm.verde.setHex(rojo ? 0x10382a : 0x3CF0A5);
+    sm.rojo?.emissive.setHex(rojo ? 0xFF4D5E : 0x000000);
+    sm.verde?.emissive.setHex(rojo ? 0x000000 : 0x3CF0A5);
+    if (sm.rojo) sm.rojo.emissiveIntensity = sm.verde.emissiveIntensity = 2.2;
   }
   din.haz.opacity = 0.12 + 0.1 * (Math.sin(t / 400) + 1) / 2;
 }
