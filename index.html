@@ -276,8 +276,8 @@ body.modo-ar{background:transparent}
 .modo-ar .pruebas{gap:5px}
 .modo-ar .estado{font-size:11.5px;gap:2px 10px}
 .modo-ar h1{font-size:18px;margin:0;cursor:pointer}
-.ar-zoom{position:fixed;z-index:4;top:32%;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;pointer-events:auto}
-.ar-zoom .btn{width:46px;min-height:46px;font-size:24px;line-height:1;background:rgba(4,6,12,.8);border-color:var(--ink-400)}
+.ar-zoom{display:flex;gap:6px}
+.ar-zoom .btn{width:42px;min-height:34px;font-size:22px;line-height:1;background:rgba(4,6,12,.8);border-color:var(--ink-400)}
 .modo-ar .pestana{cursor:pointer}
 @media (max-width:600px){.modo-ar .marca b,.modo-ar .estrellas-total{display:none}}
 .modo-ar h1::after{content:" ▾";font-size:14px;color:var(--ink-300)}
@@ -355,11 +355,11 @@ body.modo-ar{background:transparent}
     </div>
     <p class="estado" id="estado"></p>
     <div class="ar-estado" id="ar-estado" hidden></div>
+    <div class="ar-zoom" id="ar-zoom" hidden>
+      <button class="btn icono" type="button" data-zoom="0.8" aria-label="Achicar la ciudad">−</button>
+      <button class="btn icono" type="button" data-zoom="1.25" aria-label="Agrandar la ciudad">+</button>
+    </div>
   </section>
-  <div class="ar-zoom" id="ar-zoom" hidden>
-    <button class="btn icono" type="button" data-zoom="1.25" aria-label="Agrandar la ciudad">+</button>
-    <button class="btn icono" type="button" data-zoom="0.8" aria-label="Achicar la ciudad">−</button>
-  </div>
 
   <section class="col-codigo" aria-label="Tu programa">
     <div class="panel editor-panel">
@@ -2331,6 +2331,7 @@ requestAnimationFrame(dibujar);
 const AR_JS = 'https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.8/three.js/build/ar-threex.mjs';
 let THREE, render = null, escena, camara, ancla, fuente = null, contexto = null, marcador = null;
 let ciudad = null, firma = '', din = null, viendo = null;
+let modAR = null, ajustarAR = null, vertical = null, rehaciendo = false;
 const orbita = {az:-0.45, el:1.05};
 const texturas = {};
 // El tamaño de la ciudad: con cámara, cuántas veces el marcador mide su lado más largo (×2 de base);
@@ -2406,24 +2407,49 @@ async function montarAR(AR, tipo, url){
     ? {sourceType:'image', sourceUrl:url}
     : {sourceType:'webcam', sourceWidth:1280, sourceHeight:960, displayWidth:innerWidth, displayHeight:innerHeight});
   await new Promise((listo, error) => fuente.init(listo, error));
-  fuente.domElement.classList.add('fuente-ar');
-  contexto = new AR.ArToolkitContext({cameraParametersUrl:'ar/camera_para.dat', detectionMode:'mono', patternRatio:0.5, maxDetectionRate:30});
-  await new Promise(listo => contexto.init(listo));
-  camara.projectionMatrix.copy(contexto.getProjectionMatrix());
-  marcador = new THREE.Group();
-  escena.add(marcador);
-  new AR.ArMarkerControls(contexto, marcador, {type:'pattern', patternUrl:'ar/tarjeta.patt', changeMatrixMode:'modelViewMatrix',
-    smooth:true, smoothCount:5, smoothTolerance:0.01, smoothThreshold:2});
-  const ajustar = () => {
+  const el = fuente.domElement;
+  el.classList.add('fuente-ar');
+  if (!(el.videoWidth || el.naturalWidth)) await new Promise(listo => el.addEventListener(el.tagName === 'VIDEO' ? 'loadedmetadata' : 'load', listo, {once:true}));
+  modAR = AR;
+  await rehacerContexto();
+  ajustarAR = () => {
     fuente.onResizeElement();
     fuente.copyElementSizeTo(render.domElement);
     if (contexto.arController) fuente.copyElementSizeTo(contexto.arController.canvas);
     render.setSize(parseFloat(render.domElement.style.width), parseFloat(render.domElement.style.height), false);
   };
-  ajustar();
-  addEventListener('resize', () => setTimeout(ajustar, 200));
+  ajustarAR();
+  addEventListener('resize', () => setTimeout(ajustarAR, 200));
   gestos(render.domElement, false);
   estadoAR('Apunta la cámara al cuadro negro de la tarjeta');
+}
+
+// AR.js analiza cada cuadro en un lienzo de canvasWidth × canvasHeight (640 × 480 si no se le dice nada) y estira
+// el video para llenarlo. Con el celular en vertical el video quedaba aplastado: el cuadrado del marcador parecía
+// un rectángulo ancho y la ciudad salía inclinada aunque se mirara la tarjeta desde arriba. Por eso el lienzo de
+// análisis tiene las proporciones del video, con parámetros de cámara de ese tamaño, y se rehace al girar el celular.
+function parametrosCamara(ancho, alto){
+  // el campo de visión de camera_para.dat de AR.js (foco de 609 px para 640 de ancho), en el lado largo;
+  // píxeles cuadrados y sin distorsión. El formato es el de ARToolKit (versión 4, big-endian).
+  const f = 609.4 / 640 * Math.max(ancho, alto), d = new DataView(new ArrayBuffer(176));
+  d.setInt32(0, ancho); d.setInt32(4, alto);
+  [f, 0, ancho / 2, 0, 0, f, alto / 2, 0, 0, 0, 1, 0].forEach((v, i) => d.setFloat64(8 + i * 8, v));
+  [0, 0, 0, 0, f, f, ancho / 2, alto / 2, 1].forEach((v, i) => d.setFloat64(104 + i * 8, v));
+  return new Uint8Array(d.buffer);
+}
+async function rehacerContexto(){
+  const el = fuente.domElement, vw = el.videoWidth || el.naturalWidth, vh = el.videoHeight || el.naturalHeight;
+  const k = 640 / Math.max(vw, vh), ancho = Math.round(vw * k), alto = Math.round(vh * k);
+  const nuevo = new modAR.ArToolkitContext({cameraParametersUrl:parametrosCamara(ancho, alto), canvasWidth:ancho, canvasHeight:alto,
+    detectionMode:'mono', patternRatio:0.5, maxDetectionRate:30});
+  await new Promise(listo => nuevo.init(listo));
+  const grupo = new THREE.Group();
+  escena.add(grupo);
+  new modAR.ArMarkerControls(nuevo, grupo, {type:'pattern', patternUrl:'ar/tarjeta.patt', changeMatrixMode:'modelViewMatrix',
+    smooth:true, smoothCount:5, smoothTolerance:0.01, smoothThreshold:2});
+  if (marcador) escena.remove(marcador);
+  camara.projectionMatrix.copy(nuevo.getProjectionMatrix());
+  contexto = nuevo; marcador = grupo; vertical = vh > vw; viendo = null;
 }
 
 // Un dedo gira la ciudad (solo sin cámara); dos dedos la agrandan o achican; la rueda también.
@@ -2464,7 +2490,12 @@ function montarOrbita(){
 
 function cuadro(t){
   if (contexto){
-    if (fuente.ready) contexto.update(fuente.domElement);
+    const el = fuente.domElement;
+    if (!rehaciendo && el.videoWidth && (el.videoHeight > el.videoWidth) !== vertical){
+      rehaciendo = true;   // giraron el celular: el video cambió de proporción
+      rehacerContexto().then(() => { ajustarAR(); rehaciendo = false; });
+    }
+    if (fuente.ready && !rehaciendo) contexto.update(el);
     if (marcador.visible){
       ancla.matrix.copy(marcador.matrix);
       ancla.matrixWorldNeedsUpdate = true;
