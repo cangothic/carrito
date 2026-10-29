@@ -4,7 +4,7 @@ Un juego del canal para aprender las estructuras de control de Python: programas
 
 **Juega aquí: https://carrito.canred.pro/**
 
-Se juega en el navegador, en la computadora o en el celular, sin instalar nada. Cada nivel tiene varias pruebas que el mismo programa tiene que pasar; los errores salen como en Python, explicados en español. El avance y el código de cada nivel se guardan solos en el navegador.
+Se juega en el navegador, en la computadora o en el celular, sin instalar nada. Cada nivel tiene varias pruebas que el mismo programa tiene que pasar; los errores salen como en Python, explicados en español. El avance y el código de cada nivel se guardan solos en el navegador. Con realidad aumentada, en https://carrito.canred.pro/ar: imprime la tarjeta (ar/tarjeta.png), apunta la cámara del celular y la ciudad del nivel aparece en 3D encima.
 
 Todo el juego es un solo archivo, [index.html](index.html): también se puede descargar y abrir con doble clic. Se actualiza desde el repositorio de producción del canal, así que los cambios no se hacen aquí.
 
