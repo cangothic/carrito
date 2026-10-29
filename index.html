@@ -2341,6 +2341,7 @@ const AR_JS = 'https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.8/three.js/buil
 let THREE, render = null, escena, camara, ancla, fuente = null, contexto = null, marcador = null;
 let ciudad = null, firma = '', din = null, viendo = null, modelos = null;
 let modAR = null, ajustarAR = null, vertical = null, rehaciendo = false;
+let compo = null, fondo = null, cielo = null;
 const orbita = {az:-0.45, el:1.05};
 const texturas = {};
 // El tamaño de la ciudad: con cámara, cuántas veces el marcador mide su lado más largo (×2 de base);
@@ -2382,9 +2383,12 @@ async function iniciar(tipo, url){
       }
     });
     modelos.updateMatrixWorld(true);
+    const post = await Promise.all(['EffectComposer', 'RenderPass', 'UnrealBloomPass', 'ShaderPass']
+      .map(n => import(`three/addons/postprocessing/${n}.js`))).then(ms => Object.assign({}, ...ms));
     const AR = tipo === 'orbita' ? null : await import(AR_JS);
     montarEscena();
     if (AR) await montarAR(AR, tipo, url); else montarOrbita();
+    montarResplandor(post);
     inicio.hidden = true;
     $('#ar-zoom').hidden = false;
     plegar(true);   // primero se ve la ciudad; el programa se abre tocando su barra
@@ -2395,7 +2399,8 @@ async function iniciar(tipo, url){
     console.error(e);
     if (render){ render.setAnimationLoop(null); render.domElement.remove(); render.dispose(); render = null; }
     document.querySelector('#arjs-video')?.remove();
-    fuente = contexto = null;
+    compo?.dispose(); fondo?.dispose();
+    fuente = contexto = compo = fondo = null;
     botones.forEach(b => b.disabled = false);
     inicio.hidden = false;
     const motivo = e?.name === 'NotAllowedError' ? 'no tiene permiso'
@@ -2406,18 +2411,51 @@ async function iniciar(tipo, url){
 }
 
 function montarEscena(){
-  render = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  // sin antialias aquí: la escena se dibuja en una imagen aparte con su propio suavizado (montarResplandor)
+  render = new THREE.WebGLRenderer({alpha:true});
   render.setPixelRatio(Math.min(2, devicePixelRatio || 1));
   render.domElement.className = 'lienzo-3d';
   document.body.appendChild(render.domElement);
   escena = new THREE.Scene();
-  // luz baja, de noche: lo que se ve son las ventanas, las líneas y los bordes que brillan
-  escena.add(new THREE.HemisphereLight(0x9fb4ea, 0x0b1020, 1.2));
-  const sol = new THREE.DirectionalLight(0xc8d6ff, 1.1);
-  sol.position.set(1.2, 3, 2);
-  escena.add(sol);
   ancla = new THREE.Group();
   escena.add(ancla);
+  // luz baja, de noche: lo que se ve son las ventanas y las líneas que brillan. Un cielo azul tenue, la luna y dos
+  // luces de neón bajas, magenta desde el oeste y cian desde el este, que tiñen las paredes de cada lado y se
+  // reflejan en el asfalto. Van con la ciudad (en el ancla): giran con la tarjeta.
+  cielo = new THREE.HemisphereLight(0x8fa6e8, 0x0b1020, 1.0);
+  escena.add(cielo);
+  for (const [color, fuerza, x, y, z] of [[0xc8d6ff, 0.9, 1.2, 3, 2], [0xff2e9a, 2.2, -3, 1.1, -0.8], [0x22d3ff, 1.8, 2.6, 1, -2.4]]){
+    const luz = new THREE.DirectionalLight(color, fuerza);
+    luz.position.set(x, y, z);
+    ancla.add(luz, luz.target);
+  }
+}
+function tamano(w, h, estilo = false){ render.setSize(w, h, estilo); compo?.setSize(w, h); }
+
+// El resplandor del neón: la escena se dibuja en una imagen aparte, sin la cámara detrás; UnrealBloomPass le suma
+// un halo a lo que brilla más que el umbral (ventanas, líneas, faros, semáforos) y al final se pone la cámara
+// debajo, donde no hay ciudad. Así el papel blanco de la tarjeta, que es lo más claro de la imagen, no resplandece.
+function montarResplandor({EffectComposer, RenderPass, UnrealBloomPass, ShaderPass}){
+  compo = new EffectComposer(render, new THREE.WebGLRenderTarget(1, 1, {type:THREE.HalfFloatType, samples:4}));
+  compo.addPass(new RenderPass(escena, camara));
+  const halo = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.75, 0.45, 0.35);   // fuerza, radio, umbral
+  // el halo se suma al color sin tocar la transparencia: donde solo hay halo se sigue viendo la cámara
+  Object.assign(halo.blendMaterial, {blending:THREE.CustomBlending, blendSrc:THREE.SrcAlphaFactor, blendDst:THREE.OneFactor,
+    blendSrcAlpha:THREE.ZeroFactor, blendDstAlpha:THREE.OneFactor});
+  compo.addPass(halo);
+  const mezcla = new ShaderPass({
+    uniforms:{tDiffuse:{value:null}, fondo:{value:null}},
+    vertexShader:'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader:`uniform sampler2D tDiffuse, fondo; varying vec2 vUv;
+      vec3 aSRGB(vec3 c){ return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+      void main(){
+        vec4 c = texture2D(tDiffuse, vUv);   // la ciudad con su halo, en luz lineal y con transparencia
+        gl_FragColor = vec4(texture2D(fondo, vUv).rgb * (1.0 - clamp(c.a, 0.0, 1.0)) + aSRGB(max(c.rgb, 0.0)), 1.0);
+      }`});
+  mezcla.uniforms.fondo.value = fondo;   // sin cámara no hay fondo: la escena ya trae el suyo, opaco
+  compo.addPass(mezcla);
+  const v = render.getSize(new THREE.Vector2());
+  compo.setSize(v.x, v.y);
 }
 
 async function montarAR(AR, tipo, url){
@@ -2432,13 +2470,17 @@ async function montarAR(AR, tipo, url){
   const el = fuente.domElement;
   el.classList.add('fuente-ar');
   if (!(el.videoWidth || el.naturalWidth)) await new Promise(listo => el.addEventListener(el.tagName === 'VIDEO' ? 'loadedmetadata' : 'load', listo, {once:true}));
+  // la imagen de la cámara, para ponerla debajo de la ciudad (montarResplandor)
+  fondo = el.tagName === 'VIDEO' ? new THREE.VideoTexture(el) : Object.assign(new THREE.Texture(el), {needsUpdate:true});
   modAR = AR;
   await rehacerContexto();
+  // El lienzo 3D, justo encima del video: mismo tamaño y mismo lugar. (copyElementSizeTo de AR.js, con el celular
+  // en vertical, lo hace de 4:3: más ancho que el video, y la ciudad salía estirada a lo ancho.)
   ajustarAR = () => {
     fuente.onResizeElement();
-    fuente.copyElementSizeTo(render.domElement);
-    if (contexto.arController) fuente.copyElementSizeTo(contexto.arController.canvas);
-    render.setSize(parseFloat(render.domElement.style.width), parseFloat(render.domElement.style.height), false);
+    const v = fuente.domElement.style;
+    Object.assign(render.domElement.style, {width:v.width, height:v.height, marginLeft:v.marginLeft, marginTop:v.marginTop});
+    tamano(parseFloat(v.width), parseFloat(v.height));
   };
   ajustarAR();
   addEventListener('resize', () => setTimeout(ajustarAR, 200));
@@ -2520,7 +2562,7 @@ function gestos(lienzo, girar){
 function montarOrbita(){
   camara = new THREE.PerspectiveCamera(42, 1, 0.01, 60);
   escena.background = new THREE.Color(0x04060C);
-  const ajustar = () => { render.setSize(innerWidth, innerHeight); camara.aspect = innerWidth / innerHeight; camara.updateProjectionMatrix(); };
+  const ajustar = () => { tamano(innerWidth, innerHeight, true); camara.aspect = innerWidth / innerHeight; camara.updateProjectionMatrix(); };
   ajustar();
   addEventListener('resize', ajustar);
   gestos(render.domElement, true);
@@ -2552,7 +2594,8 @@ function cuadro(t){
     centrarEnLoLibre();
   }
   animarCiudad(t);
-  render.render(escena, camara);
+  cielo.position.setFromMatrixColumn(ancla.matrix, 1);   // el cielo, arriba de la ciudad y no de la pantalla
+  compo.render();
 }
 
 // La pose del marcador trae ruido en cada cuadro, y como la ciudad mide varias veces la tarjeta, un temblor mínimo
@@ -2706,7 +2749,8 @@ function construir(m){
   const ajedrez = texturas.ajedrez ??= lienzoTextura(64, 64, g => {
     for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++){ g.fillStyle = (i + j) % 2 ? '#0C1322' : '#EEF3FC'; g.fillRect(i * 16, j * 16, 16, 16); }
   });
-  malla(new THREE.PlaneGeometry(s * 0.7, s * 0.7).rotateX(-Math.PI / 2), basico(0xffffff, {map:ajedrez}), mx, sobre, mz);
+  // los cuadros, algo grises: en blanco puro resplandecían tanto que no se veían
+  malla(new THREE.PlaneGeometry(s * 0.7, s * 0.7).rotateX(-Math.PI / 2), basico(0x9AA4B8, {map:ajedrez}), mx, sobre, mz);
   copia('meta', mx - s * 0.36, sobre, mz - s * 0.36);
   const haz = basico(0x3CF0A5, {transparent:true, opacity:0.2, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending});
   malla(new THREE.CylinderGeometry(s * 0.34, s * 0.34, s * 2.4, 32, 1, true), haz, mx, s * 1.2, mz);
@@ -2792,7 +2836,7 @@ function animarCiudad(t){
     sm.verde?.emissive.setHex(rojo ? 0x000000 : 0x3CF0A5);
     if (sm.rojo) sm.rojo.emissiveIntensity = sm.verde.emissiveIntensity = 2.2;
   }
-  din.haz.opacity = 0.12 + 0.1 * (Math.sin(t / 400) + 1) / 2;
+  din.haz.opacity = 0.08 + 0.07 * (Math.sin(t / 400) + 1) / 2;
 }
 </script>
 </body>
