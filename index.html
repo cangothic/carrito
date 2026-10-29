@@ -263,12 +263,23 @@ body.modo-ar{background:transparent}
 .modo-ar .marca small{display:none}
 .modo-ar .app{display:block;max-width:none;padding:0;pointer-events:none}
 .modo-ar .col-mapa{
-  position:fixed;z-index:4;top:calc(58px + env(safe-area-inset-top,0px));gap:8px;max-width:520px;
+  position:fixed;z-index:4;top:calc(var(--alto-barra,52px) + 6px);gap:8px;max-width:520px;
   left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));
 }
 .modo-ar .col-mapa>*{pointer-events:auto}
-.modo-ar .col-mapa>div:first-child{padding:8px 12px;border-radius:12px;background:rgba(4,6,12,.74);backdrop-filter:blur(6px)}
-.modo-ar h1{font-size:20px;margin:2px 0 0;cursor:pointer}
+/* arriba, una sola franja: el título y, debajo, las pruebas y el estado en fila */
+.modo-ar .col-mapa{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px 6px}
+.modo-ar .col-mapa>div:first-child,.modo-ar .col-mapa>.lycan{flex-basis:100%}
+.modo-ar .col-mapa>div:first-child{padding:6px 12px;border-radius:12px;background:rgba(4,6,12,.74);backdrop-filter:blur(6px)}
+.modo-ar .col-mapa .eyebrow{display:none}
+.modo-ar .tab{padding:3px 9px;font-size:12px}
+.modo-ar .pruebas{gap:5px}
+.modo-ar .estado{font-size:11.5px;gap:2px 10px}
+.modo-ar h1{font-size:18px;margin:0;cursor:pointer}
+.ar-zoom{position:fixed;z-index:4;top:32%;left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+.ar-zoom .btn{width:46px;min-height:46px;font-size:24px;line-height:1;background:rgba(4,6,12,.8);border-color:var(--ink-400)}
+.modo-ar .pestana{cursor:pointer}
+@media (max-width:600px){.modo-ar .marca b,.modo-ar .estrellas-total{display:none}}
 .modo-ar h1::after{content:" ▾";font-size:14px;color:var(--ink-300)}
 .modo-ar .col-mapa.abierta h1::after{content:" ▴"}
 .modo-ar .objetivo{font-size:14px;margin-top:4px}
@@ -296,13 +307,13 @@ body.modo-ar{background:transparent}
 .modo-ar .aviso{position:fixed;z-index:6;top:auto;bottom:calc(54vh + 14px)}
 .modo-ar.programa-plegado .aviso{bottom:150px}
 @media (min-width:940px){
-  .modo-ar .col-codigo{left:auto;width:470px;top:calc(62px + env(safe-area-inset-top,0px));max-height:none;padding-top:0}
+  .modo-ar .col-codigo{left:auto;width:470px;top:calc(var(--alto-barra,52px) + 8px);max-height:none;padding-top:0}
   .modo-ar .aviso{bottom:auto;top:120px}
 }
 /* celular de lado: el programa a la derecha y el nivel a la izquierda */
 @media (orientation:landscape) and (max-height:560px) and (max-width:939px){
   .modo-ar .col-mapa{right:auto;width:44vw}
-  .modo-ar .col-codigo{left:auto;width:54vw;top:calc(52px + env(safe-area-inset-top,0px));max-height:none;padding-top:0}
+  .modo-ar .col-codigo{left:auto;width:54vw;top:calc(var(--alto-barra,52px) + 6px);max-height:none;padding-top:0}
   .modo-ar .aviso,.modo-ar.programa-plegado .aviso{bottom:auto;top:60px;left:22vw}
 }
 .ar-marcador{display:block;width:120px;height:120px;margin:12px 0;border-radius:6px}
@@ -345,6 +356,10 @@ body.modo-ar{background:transparent}
     <p class="estado" id="estado"></p>
     <div class="ar-estado" id="ar-estado" hidden></div>
   </section>
+  <div class="ar-zoom" id="ar-zoom" hidden>
+    <button class="btn icono" type="button" data-zoom="1.25" aria-label="Agrandar la ciudad">+</button>
+    <button class="btn icono" type="button" data-zoom="0.8" aria-label="Achicar la ciudad">−</button>
+  </div>
 
   <section class="col-codigo" aria-label="Tu programa">
     <div class="panel editor-panel">
@@ -2287,9 +2302,14 @@ if (MODO_AR){
   document.body.classList.add('modo-ar');
   document.documentElement.classList.add('modo-ar');
   const b = $('#b-modo');
-  b.textContent = 'Volver al 2D'; b.href = location.pathname;
+  b.textContent = '← 2D'; b.title = 'Volver al 2D'; b.setAttribute('aria-label', 'Volver al 2D'); b.href = location.pathname;
+  // lo que va debajo de la barra se ubica según su altura real (en el celular puede ocupar dos filas)
+  const medirBarra = () => document.documentElement.style.setProperty('--alto-barra', $('.barra').offsetHeight + 'px');
+  new ResizeObserver(medirBarra).observe($('.barra'));
+  medirBarra();
   document.body.appendChild($('#aviso'));
-  $('#b-plegar').addEventListener('click', () => plegar(!$('.col-codigo').classList.contains('plegada')));
+  // toda la barra de programa.py abre o pliega el programa
+  $('.pestana').addEventListener('click', () => plegar(!$('.col-codigo').classList.contains('plegada')));
   $('#titulo').addEventListener('click', () => $('.col-mapa').classList.toggle('abierta'));
 } else {
   // sin la carpeta ar/ al lado (el artefacto, o el archivo abierto con doble clic), la realidad aumentada está en el sitio
@@ -2311,12 +2331,18 @@ requestAnimationFrame(dibujar);
 const AR_JS = 'https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.8/three.js/build/ar-threex.mjs';
 let THREE, render = null, escena, camara, ancla, fuente = null, contexto = null, marcador = null;
 let ciudad = null, firma = '', din = null, viendo = null;
-const orbita = {az:-0.45, el:1.05, r:3.2};
+const orbita = {az:-0.45, el:1.05};
 const texturas = {};
+// El tamaño de la ciudad: con cámara, cuántas veces el marcador mide su lado más largo (×2 de base);
+// sin cámara, qué tan cerca está la vista. Lo cambian los botones + y −, el pellizco y la rueda; se guarda.
+const CIUDAD_AR = 1.8;
+let zoom = 1, claveZoom = 'zoomAR';   // con cámara y sin cámara se guardan aparte
+function zoomar(f){ zoom = Math.min(4, Math.max(0.4, zoom * f)); S[claveZoom] = zoom; guardar(); }
 
 if (MODO_AR){
   const inicio = $('#ar-inicio'), prueba = new URLSearchParams(location.search).get('prueba');
   inicio.addEventListener('click', e => { const b = e.target.closest('button[data-ar]'); if (b) iniciar(b.dataset.ar); });
+  $('#ar-zoom').addEventListener('click', e => { const b = e.target.closest('button[data-zoom]'); if (b) zoomar(+b.dataset.zoom); });
   // ?ar&prueba=ar/prueba.jpg: una foto de la tarjeta en vez de la cámara, para probar la detección
   if (prueba) iniciar('imagen', prueba); else inicio.hidden = false;
 }
@@ -2330,12 +2356,16 @@ async function iniciar(tipo, url){
   const inicio = $('#ar-inicio'), nota = $('#ar-nota'), botones = inicio.querySelectorAll('button');
   botones.forEach(b => b.disabled = true);
   nota.textContent = tipo === 'orbita' ? 'Cargando el 3D…' : 'Cargando el 3D y la cámara…';
+  claveZoom = tipo === 'orbita' ? 'zoom3d' : 'zoomAR';
+  zoom = Math.min(4, Math.max(0.4, S[claveZoom] || 1));
   try {
     THREE = await import('three');
     const AR = tipo === 'orbita' ? null : await import(AR_JS);
     montarEscena();
     if (AR) await montarAR(AR, tipo, url); else montarOrbita();
     inicio.hidden = true;
+    $('#ar-zoom').hidden = false;
+    plegar(true);   // primero se ve la ciudad; el programa se abre tocando su barra
     window.alCargarMundo = construir;
     if (mundo) construir(mundo);
     render.setAnimationLoop(cuadro);
@@ -2392,7 +2422,34 @@ async function montarAR(AR, tipo, url){
   };
   ajustar();
   addEventListener('resize', () => setTimeout(ajustar, 200));
+  gestos(render.domElement, false);
   estadoAR('Apunta la cámara al cuadro negro de la tarjeta');
+}
+
+// Un dedo gira la ciudad (solo sin cámara); dos dedos la agrandan o achican; la rueda también.
+function gestos(lienzo, girar){
+  const dedos = new Map();
+  let separacion = 0;
+  lienzo.style.touchAction = 'none';
+  lienzo.addEventListener('pointerdown', e => { dedos.set(e.pointerId, [e.clientX, e.clientY]); lienzo.setPointerCapture(e.pointerId); separacion = 0; });
+  lienzo.addEventListener('pointermove', e => {
+    const antes = dedos.get(e.pointerId);
+    if (!antes) return;
+    const ahora = [e.clientX, e.clientY];
+    dedos.set(e.pointerId, ahora);
+    if (dedos.size === 1 && girar){
+      orbita.az -= (ahora[0] - antes[0]) * 0.008;
+      orbita.el = Math.min(1.45, Math.max(0.2, orbita.el + (ahora[1] - antes[1]) * 0.006));
+    } else if (dedos.size === 2){
+      const [a, b] = [...dedos.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      if (separacion) zoomar(d / separacion);
+      separacion = d;
+    }
+  });
+  const soltar = e => { dedos.delete(e.pointerId); separacion = 0; };
+  lienzo.addEventListener('pointerup', soltar);
+  lienzo.addEventListener('pointercancel', soltar);
+  lienzo.addEventListener('wheel', e => { e.preventDefault(); zoomar(e.deltaY > 0 ? 0.92 : 1.08); }, {passive:false});
 }
 
 function montarOrbita(){
@@ -2401,20 +2458,7 @@ function montarOrbita(){
   const ajustar = () => { render.setSize(innerWidth, innerHeight); camara.aspect = innerWidth / innerHeight; camara.updateProjectionMatrix(); };
   ajustar();
   addEventListener('resize', ajustar);
-  const lienzo = render.domElement;
-  lienzo.style.touchAction = 'none';
-  let antes = null;
-  lienzo.addEventListener('pointerdown', e => { antes = [e.clientX, e.clientY]; lienzo.setPointerCapture(e.pointerId); });
-  lienzo.addEventListener('pointermove', e => {
-    if (!antes) return;
-    orbita.az -= (e.clientX - antes[0]) * 0.008;
-    orbita.el = Math.min(1.45, Math.max(0.2, orbita.el + (e.clientY - antes[1]) * 0.006));
-    antes = [e.clientX, e.clientY];
-  });
-  const soltar = () => { antes = null; };
-  lienzo.addEventListener('pointerup', soltar);
-  lienzo.addEventListener('pointercancel', soltar);
-  lienzo.addEventListener('wheel', e => { e.preventDefault(); orbita.r = Math.min(8, Math.max(1.5, orbita.r * (e.deltaY > 0 ? 1.08 : 0.93))); }, {passive:false});
+  gestos(render.domElement, true);
   estadoAR('Sin cámara: arrastra para girar la ciudad');
 }
 
@@ -2431,8 +2475,9 @@ function cuadro(t){
       if (viendo) estadoAR('Tarjeta a la vista', 'ok');
       else if (ancla.visible) estadoAR('Perdí la tarjeta: la ciudad se queda donde la viste', 'ojo');
     }
+    ciudad?.scale.setScalar(CIUDAD_AR * zoom);
   } else {
-    const {az, el, r} = orbita;
+    const {az, el} = orbita, r = 2.7 / zoom;
     camara.position.set(r * Math.cos(el) * Math.sin(az), r * Math.sin(el), r * Math.cos(el) * Math.cos(az));
     camara.lookAt(0, 0, 0);
     centrarEnLoLibre();
@@ -2527,7 +2572,7 @@ function construir(m){
 
   // calles y sus líneas punteadas
   const plano = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
-  instancias(plano, lambert(0x141E33), calles, ([x, y]) => { const [px, pz] = pos(x, y); P.set(px, 0.002, pz); E.set(s, 1, s); });
+  instancias(plano, lambert(0x2A3A5E), calles, ([x, y]) => { const [px, pz] = pos(x, y); P.set(px, 0.002, pz); E.set(s, 1, s); });
   const rayas = [];
   for (const [x, y] of calles){
     if (m.celdas[y][x] === 'S') continue;
@@ -2537,7 +2582,7 @@ function construir(m){
       for (const [a, b] of [[0.06, 0.2], [0.3, 0.44]]) rayas.push(px + dx * a * s, 0.004, pz + dy * a * s, px + dx * b * s, 0.004, pz + dy * b * s);
     }
   }
-  lineas(rayas, null, new THREE.LineBasicMaterial({color:0x7584A8}));
+  lineas(rayas, null, new THREE.LineBasicMaterial({color:0xD6DFF0}));
 
   // pasos de cebra: franjas a lo largo de la calle
   const franjas = [];
@@ -2556,9 +2601,10 @@ function construir(m){
   edificios.forEach((lista, k) => {
     const lado = lambert(0x1B2643, {emissive:0xffffff, emissiveMap:ventanas(k), emissiveIntensity:1.1});
     instancias(caja, [lado, lado, techo, techo, lado, lado], lista, ([x, y]) => {
-      const [px, pz] = pos(x, y), alto = s * (0.3 + hash(x, y, 1) * 0.8);
-      P.set(px, alto / 2, pz); E.set(s * 0.84, alto, s * 0.84);
-      const c = new THREE.Color(NEON[Math.floor(hash(x, y) * NEON.length)]), a = s * 0.42, h = alto + 0.001;
+      // bajos, para que desde un costado no tapen la calle ni el carrito
+      const [px, pz] = pos(x, y), alto = s * (0.18 + hash(x, y, 1) * 0.42);
+      P.set(px, alto / 2, pz); E.set(s * 0.8, alto, s * 0.8);
+      const c = new THREE.Color(NEON[Math.floor(hash(x, y) * NEON.length)]), a = s * 0.4, h = alto + 0.001;
       const esquinas = [[-a, -a], [a, -a], [a, a], [-a, a]];
       for (let i = 0; i < 4; i++){
         const [ax, az] = esquinas[i], [bx, bz] = esquinas[(i + 1) % 4];
@@ -2619,7 +2665,7 @@ function construir(m){
 
   // el carrito: cian, con cabina oscura, faros y las orejas de lobo en el techo
   const carro = new THREE.Group();
-  const L = s * 0.62, W = s * 0.4, H = s * 0.14, base = s * 0.06;
+  const L = s * 0.74, W = s * 0.48, H = s * 0.16, base = s * 0.06;
   const pintura = lambert(0x22D3FF, {emissive:0x0A7FA8, emissiveIntensity:0.7});
   const parte = (geo, mat, x, y, z) => { const o = new THREE.Mesh(geo, mat); o.position.set(x, y, z); carro.add(o); return o; };
   parte(new THREE.BoxGeometry(L, H, W), pintura, 0, base + H / 2, 0);
@@ -2640,9 +2686,12 @@ function construir(m){
   });
   parte(new THREE.PlaneGeometry(s * 1.1, s * 0.9).rotateX(-Math.PI / 2),
     basico(0xffffff, {map:brillo, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}), 0, 0.006, 0);
+  // una flecha cian flotando encima, para encontrar el carrito de un vistazo
+  const baliza = new THREE.Mesh(new THREE.ConeGeometry(s * 0.13, s * 0.24, 4).rotateX(Math.PI), basico(0x22D3FF));
+  carro.add(baliza);
   ciudad.add(carro);
 
-  din = {s, pos, carro, pintura, trasera:trasera.color, paquetes, controles, semaforos, haz};
+  din = {s, pos, carro, baliza, pintura, trasera:trasera.color, paquetes, controles, semaforos, haz};
 }
 
 function animarCiudad(t){
@@ -2656,6 +2705,8 @@ function animarCiudad(t){
   }
   din.carro.position.set(x, 0, z);
   din.carro.rotation.y = -vis.ang;
+  din.baliza.position.y = s * (0.72 + 0.07 * Math.sin(t / 250));
+  din.baliza.rotation.y = t / 500;
   din.trasera.setHex(vis.freno > 0 ? 0xFF66B5 : 0x8a1a55);
   din.pintura.emissive.setHex(vis.flash > 0 ? 0xFF4D5E : 0x0A7FA8);
   if (vis.flash > 0) vis.flash = Math.max(0, vis.flash - 0.03);
