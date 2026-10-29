@@ -2611,7 +2611,6 @@ function liberar(obj){
 const LADOS = ['E', 'N', 'W', 'S'];   // en este orden los recorre un giro de 90° alrededor de Y
 const CALLES = {recta:['E', 'W'], curva:['W', 'S'], t:['E', 'W', 'S'], cruce:['E', 'N', 'W', 'S'], fin:['E'], cebra:['E', 'W'], sola:[]};
 const EDIFICIOS = 'abcdfgh';
-const NEON_EDIFICIO = {a:0x22D3FF, b:0xFF2E9A, c:0xC4B1FF, d:0xFFC94D, f:0x22D3FF, g:0xFF2E9A, h:0xC4B1FF};   // el de sus ventanas
 function calleDe(m, x, y){
   const abiertos = [['E', 1, 0], ['N', 0, -1], ['W', -1, 0], ['S', 0, 1]].filter(([, dx, dy]) => m.libre(x + dx, y + dy)).map(([l]) => l);
   const n = abiertos.length, tiene = l => abiertos.includes(l);
@@ -2689,27 +2688,6 @@ function construir(m){
   // calles de Kenney, giradas según por dónde sigue la calle; edificios girados al azar
   for (const nombre in calles) repetir('calle_' + nombre, calles[nombre], ([x, y, k]) => enCasilla(x, y, k));
   for (const letra in edificios) repetir('edificio_' + letra, edificios[letra], ([x, y]) => enCasilla(x, y, Math.floor(hash(x, y, 7) * 4)));
-  // el borde de la azotea de cada edificio en neón, del color de sus ventanas
-  const contornos = [], colores = [];
-  for (const letra in edificios){
-    const caja = new THREE.Box3().setFromObject(modelos.getObjectByName('edificio_' + letra)), c = new THREE.Color(NEON_EDIFICIO[letra]);
-    for (const [x, y] of edificios[letra]){
-      const [px, pz] = pos(x, y), giro = Math.floor(hash(x, y, 7) * 4) * Math.PI / 2, cos = Math.cos(giro), sin = Math.sin(giro);
-      const esquinas = [[caja.min.x, caja.min.z], [caja.max.x, caja.min.z], [caja.max.x, caja.max.z], [caja.min.x, caja.max.z]]
-        .map(([a, b]) => [px + (a * cos + b * sin) * s, pz + (-a * sin + b * cos) * s]);
-      const h = caja.max.y * s + 0.001;
-      for (let i = 0; i < 4; i++){
-        const [ax, az] = esquinas[i], [bx, bz] = esquinas[(i + 1) % 4];
-        contornos.push(ax, h, az, bx, h, bz);
-        colores.push(c.r, c.g, c.b, c.r, c.g, c.b);
-      }
-    }
-  }
-  if (contornos.length){
-    const geo = new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(contornos, 3));
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colores, 3));
-    ciudad.add(new THREE.LineSegments(geo, new THREE.LineBasicMaterial({vertexColors:true})));
-  }
 
   // parques: pasto con un árbol grande y uno chico
   instancias(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), lambert(0x0E3326), parques, ([x, y]) => {
