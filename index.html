@@ -2445,10 +2445,25 @@ async function rehacerContexto(){
   await new Promise(listo => nuevo.init(listo));
   const grupo = new THREE.Group();
   escena.add(grupo);
-  new modAR.ArMarkerControls(nuevo, grupo, {type:'pattern', patternUrl:'ar/tarjeta.patt', changeMatrixMode:'modelViewMatrix',
-    smooth:true, smoothCount:5, smoothTolerance:0.01, smoothThreshold:2});
+  new modAR.ArMarkerControls(nuevo, grupo, {type:'pattern', patternUrl:'ar/tarjeta.patt', changeMatrixMode:'modelViewMatrix'});
   if (marcador) escena.remove(marcador);
-  camara.projectionMatrix.copy(nuevo.getProjectionMatrix());
+  // ARToolKit arma la proyección con near 0,0001 y far 1000: así la profundidad no distingue capas que están a
+  // milímetros (la calle, sus rayas, la cebra, la losa) y titilan con la cámara en vivo. Near 0,05 y far 200,
+  // en lados de marcador, alcanzan de sobra para una tarjeta sobre la mesa.
+  const e = camara.projectionMatrix.copy(nuevo.getProjectionMatrix()).elements, cerca = 0.05, lejos = 200;
+  e[10] = -(lejos + cerca) / (lejos - cerca);
+  e[14] = -2 * lejos * cerca / (lejos - cerca);
+  camara.projectionMatrixInverse.copy(camara.projectionMatrix).invert();
+  // Los cuadrados de las esquinas del QR de la tarjeta también le parecen marcadores a ARToolKit: chicos y dudosos
+  // (en las pruebas, 75 px y confianza 0,59, contra 15.000 px y 0,995 del marcador). AR.js calcula la pose de cada
+  // candidato partiendo de la del anterior, así que uno malo arruinaba la del bueno. Ahora cada pose se calcula
+  // desde cero y los candidatos chicos o dudosos no llegan a AR.js.
+  const ar = nuevo.arController, avisar = ar.dispatchEvent.bind(ar);
+  ar.getTransMatSquareCont = ar.getTransMatSquare;
+  ar.dispatchEvent = ev => {
+    if (ev.name === 'getMarker' && ev.data.type === 0 && (ev.data.marker.cfPatt < 0.7 || ev.data.marker.area < 400)) return;
+    avisar(ev);
+  };
   contexto = nuevo; marcador = grupo; vertical = vh > vw; viendo = null;
 }
 
@@ -2497,8 +2512,7 @@ function cuadro(t){
     }
     if (fuente.ready && !rehaciendo) contexto.update(el);
     if (marcador.visible){
-      ancla.matrix.copy(marcador.matrix);
-      ancla.matrixWorldNeedsUpdate = true;
+      suavizar(marcador.matrix, t);
       ancla.visible = true;
     }
     if (marcador.visible !== viendo){
@@ -2515,6 +2529,24 @@ function cuadro(t){
   }
   animarCiudad(t);
   render.render(escena, camara);
+}
+
+// La pose del marcador trae ruido en cada cuadro, y como la ciudad mide varias veces la tarjeta, un temblor mínimo
+// del ángulo se nota en las orillas. Se sigue la pose con un paso que crece con lo que se movió: con la tarjeta
+// quieta casi no avanza (no tiembla) y al mover el celular la alcanza enseguida. Si se perdió un rato, salta.
+let pose = null, ultimaVista = -1e9;
+function suavizar(m, t){
+  pose ??= {p:new THREE.Vector3(), q:new THREE.Quaternion(), s:new THREE.Vector3(), P:new THREE.Vector3(), Q:new THREE.Quaternion(), S:new THREE.Vector3()};
+  m.decompose(pose.P, pose.Q, pose.S);
+  if (t - ultimaVista > 600){ pose.p.copy(pose.P); pose.q.copy(pose.Q); pose.s.copy(pose.S); }
+  else {
+    const mov = pose.p.distanceTo(pose.P) / Math.max(0.5, pose.p.length()), giro = pose.q.angleTo(pose.Q);
+    const paso = Math.min(1, 0.08 + mov * 4 + giro * 1.5);
+    pose.p.lerp(pose.P, paso); pose.q.slerp(pose.Q, paso); pose.s.lerp(pose.S, paso);
+  }
+  ultimaVista = t;
+  ancla.matrix.compose(pose.p, pose.q, pose.s);
+  ancla.matrixWorldNeedsUpdate = true;
 }
 
 // Sin cámara, el centro de la ciudad va al centro del espacio que dejan libre el nivel y el programa.
@@ -2623,8 +2655,8 @@ function construir(m){
   }
   instancias(new THREE.BoxGeometry(1, 1, 1), lambert(0xEEF3FC), franjas, ([x, y, h, o]) => {
     const [px, pz] = pos(x, y);
-    if (h){ P.set(px, 0.004, pz + o * s); E.set(s * 0.6, 0.004, s * 0.085); }
-    else { P.set(px + o * s, 0.004, pz); E.set(s * 0.085, 0.004, s * 0.6); }
+    if (h){ P.set(px, 0.005, pz + o * s); E.set(s * 0.6, 0.002, s * 0.085); }
+    else { P.set(px + o * s, 0.005, pz); E.set(s * 0.085, 0.002, s * 0.6); }
   });
 
   // edificios: tres tandas, cada una con sus ventanas; la azotea con el borde en neón
