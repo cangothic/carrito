@@ -1,6 +1,6 @@
 # El carrito de lycan
 
-Un juego del canal para aprender las estructuras de control de Python: programas un carrito escribiendo Python de verdad (for, while, if, elif y else) y lo ves ejecutarse línea por línea, en 15 niveles.
+Un juego del canal para aprender Python: programas un carrito escribiendo Python de verdad y lo ves ejecutarse línea por línea, en 23 niveles. Las estructuras de control (for, while, if, elif y else), las variables y las estructuras de datos: listas, pilas, colas con deque, conjuntos y diccionarios.
 
 **Juega aquí: https://carrito.canred.pro/**
 

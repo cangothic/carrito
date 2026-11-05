@@ -6,9 +6,9 @@
 <!--artefacto-->
 <title>El carrito de lycan</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Un juego de El bucle de lycan para aprender las estructuras de control de Python (for, if, elif, else y while) programando un carrito. Gratis en el navegador.">
+<meta name="description" content="Un juego de El bucle de lycan para aprender Python programando un carrito: las estructuras de control (for, if, elif, else y while), las variables y las estructuras de datos (listas, pilas, colas, conjuntos y diccionarios). Gratis en el navegador.">
 <meta property="og:title" content="El carrito de lycan · El bucle de lycan">
-<meta property="og:description" content="Programa un carrito escribiendo Python de verdad y aprende for, if y while: 15 niveles gratis en el navegador, en la computadora o en el celular.">
+<meta property="og:description" content="Programa un carrito escribiendo Python de verdad y aprende for, if, while, variables, listas y diccionarios: 23 niveles gratis en el navegador, en la computadora o en el celular.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://carrito.canred.pro/">
 <meta property="og:image" content="https://carrito.canred.pro/portada.jpg">
@@ -132,6 +132,31 @@ canvas{display:block;max-width:100%;border-radius:4px}
 @keyframes entra{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
 .estado{margin:0;font-family:var(--font-mono);font-size:12.5px;color:var(--ink-300);font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;gap:4px 16px}
 .estado b{color:var(--ink-100);font-weight:500}
+.estado .apurado b{color:var(--red-500)}
+
+/* variables: cada una es una caja con nombre; una lista, una fila de casilleros numerados desde 0 */
+.memoria{display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--ink-900);border:1px solid rgba(255,201,77,.3);border-radius:12px}
+.memoria-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px;font-family:var(--font-mono);font-size:12px}
+.memoria-t{color:var(--oro)}
+.memoria-costo{color:var(--magenta-400)}
+.vars{display:flex;flex-direction:column;gap:8px}
+.vars .vacia{margin:0;font-size:13.5px;color:var(--ink-300)}
+.var{display:grid;grid-template-columns:minmax(64px,auto) minmax(0,1fr);gap:10px;align-items:start}
+.var-n{font-family:var(--font-mono);font-size:13px;color:var(--ink-50);padding-top:4px;overflow-wrap:anywhere}
+.var-n small{display:block;font-size:10.5px;color:var(--ink-400)}
+.casillas{display:flex;flex-wrap:wrap;gap:4px;align-items:flex-end;min-width:0}
+.casilla{
+  display:inline-flex;flex-direction:column;align-items:center;min-width:28px;padding:2px 7px 3px;border-radius:5px;
+  background:var(--ink-800);border:1px solid var(--ink-500);font-family:var(--font-mono);font-size:12px;line-height:1.35;color:var(--ink-100);
+  white-space:nowrap;transition:border-color .1s,box-shadow .1s,background .1s;
+}
+.casilla i{font-style:normal;font-size:9.5px;line-height:1.1;color:var(--ink-400)}
+.casilla.caja{border-color:rgba(34,211,255,.55);padding-block:4px}
+.casilla.clave{color:var(--lavanda)}
+.casilla.mueve{border-color:var(--magenta-500);background:rgba(255,46,154,.16);box-shadow:0 0 12px -2px var(--magenta-500)}
+.casilla.busca{border-color:var(--oro);background:rgba(255,201,77,.14);box-shadow:0 0 12px -2px var(--oro)}
+.par{display:inline-flex;align-items:center;gap:3px;color:var(--ink-400);font-size:12px}
+.casillas .nada{font-family:var(--font-mono);font-size:12px;color:var(--ink-400);padding:4px 0}
 
 /* ---------- editor ---------- */
 .panel{background:var(--ink-900);border:1px solid var(--ink-600);border-radius:12px;min-width:0}
@@ -181,7 +206,7 @@ canvas{display:block;max-width:100%;border-radius:4px}
   font-family:var(--font-mono);font-size:12.5px;white-space:nowrap;
 }
 .chip:hover{background:var(--ink-700);border-color:var(--ink-400)}
-.chip.orden{color:var(--cyan-400)} .chip.estructura{color:var(--magenta-400)} .chip.pregunta{color:var(--lavanda)} .chip.sangria{color:var(--ink-200)}
+.chip.orden{color:var(--cyan-400)} .chip.estructura{color:var(--magenta-400)} .chip.pregunta{color:var(--lavanda)} .chip.dato{color:var(--oro)} .chip.sangria{color:var(--ink-200)}
 @media (max-width:520px){.grupo-t{width:100%}}
 
 .consola{
@@ -291,6 +316,7 @@ body.modo-ar{background:transparent;touch-action:none}   /* el pellizco agranda 
 .modo-ar .lycan{background:rgba(26,6,20,.9);backdrop-filter:blur(6px)}
 .modo-ar .pruebas .nota{padding:3px 8px;border-radius:999px;background:rgba(4,6,12,.74)}
 .modo-ar .estado{align-self:flex-start;padding:4px 10px;border-radius:999px;background:rgba(4,6,12,.74)}
+.modo-ar .memoria{flex-basis:100%;max-height:24vh;overflow:auto;padding:6px 10px;gap:6px;background:rgba(4,6,12,.82);backdrop-filter:blur(6px)}
 .modo-ar .ar-estado{
   display:block;align-self:flex-start;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:500;
   background:rgba(4,6,12,.8);border:1px solid var(--ink-400);color:var(--ink-100);
@@ -334,7 +360,7 @@ body.modo-ar{background:transparent;touch-action:none}   /* el pellizco agranda 
 <header class="barra">
   <a class="marca" href="https://www.youtube.com/@bucledelycan" target="_blank" rel="noopener">
     <svg class="lobo" aria-hidden="true"><use href="#lobo"/></svg>
-    <span><b>El carrito de lycan</b><small>// programa en Python · for, if y while</small></span>
+    <span><b>El carrito de lycan</b><small>// programa en Python · for, if, while y listas</small></span>
   </a>
   <span class="esp"></span>
   <button class="btn" id="b-niveles" type="button" aria-haspopup="dialog"><span id="b-niveles-txt">Nivel 1</span> <span class="estrellas-total" id="estrellas-total"></span></button>
@@ -360,6 +386,10 @@ body.modo-ar{background:transparent;touch-action:none}   /* el pellizco agranda 
       <div class="aviso" id="aviso" hidden></div>
     </div>
     <p class="estado" id="estado"></p>
+    <div class="memoria" id="memoria" hidden>
+      <div class="memoria-cab"><span class="memoria-t">// variables</span><span class="memoria-costo" id="memoria-costo"></span></div>
+      <div class="vars" id="vars"></div>
+    </div>
     <div class="ar-estado" id="ar-estado" hidden></div>
     <div class="ar-zoom" id="ar-zoom" hidden>
       <button class="btn icono" type="button" data-zoom="0.8" aria-label="Achicar la ciudad">−</button>
@@ -426,7 +456,8 @@ body.modo-ar{background:transparent;touch-action:none}   /* el pellizco agranda 
 
 const PALABRAS = new Set(['if','elif','else','while','for','in','not','and','or','True','False','None','pass','break','continue',
   'def','return','import','from','is','lambda','class','with','try','except','finally','raise','global','yield','del','assert','as','nonlocal','async','await']);
-const NO_HACEN_FALTA = new Set(['def','return','import','from','is','lambda','class','with','try','except','finally','raise','global','yield','del','assert','as','nonlocal','async','await']);
+const NO_HACEN_FALTA = new Set(['def','return','lambda','class','with','try','except','finally','raise','global','yield','del','assert','as','nonlocal','async','await']);
+const ASIGNA = ['=','+=','-=','*='];
 
 class ErrorPy extends Error {
   constructor(tipo, mensaje, linea, ayuda){ super(mensaje); this.tipo = tipo; this.linea = linea; this.ayuda = ayuda || ''; }
@@ -436,7 +467,7 @@ const errPy = (tipo, mensaje, linea, ayuda) => new ErrorPy(tipo, mensaje, linea,
 function tokenizar(src){
   const lineas = src.replace(/\r\n?/g, '\n').split('\n');
   const toks = [], pila = [0], abiertos = [];
-  const pareja = {')':'(', ']':'['};
+  const pareja = {')':'(', ']':'[', '}':'{'};
   for (let i = 0; i < lineas.length; i++){
     const nl = i + 1, s = lineas[i].replace(/\t/g, '    ');
     let j = 0;
@@ -483,9 +514,9 @@ function tokenizar(src){
       }
       const dos = s.slice(j, j + 2);
       if (['==','!=','<=','>=','+=','-=','*=','//','**'].includes(dos)){ toks.push({t:'OP', v:dos, linea:nl}); j += 2; continue; }
-      if ('()[]:,=<>+-*/%.'.includes(c)){
-        if (c === '(' || c === '[') abiertos.push({c, linea:nl});
-        if (c === ')' || c === ']'){
+      if ('()[]{}:,=<>+-*/%.'.includes(c)){
+        if (c === '(' || c === '[' || c === '{') abiertos.push({c, linea:nl});
+        if (c === ')' || c === ']' || c === '}'){
           const a = abiertos.pop();
           if (!a) throw errPy('SyntaxError', `unmatched '${c}'`, nl, 'Sobra un paréntesis de cierre.');
           if (a.c !== pareja[c]) throw errPy('SyntaxError', `closing parenthesis '${c}' does not match opening parenthesis '${a.c}'`, nl);
@@ -532,6 +563,7 @@ class Parser {
       if (t.v === 'if') return this.si();
       if (t.v === 'while') return this.mientras();
       if (t.v === 'for') return this.para();
+      if (t.v === 'import' || t.v === 'from') return this.importar();
       if (t.v === 'elif' || t.v === 'else') throw errPy('SyntaxError', 'invalid syntax', t.linea,
         `${t.v} tiene que ir justo después del bloque de un if, con la misma sangría que ese if.`);
       if (NO_HACEN_FALTA.has(t.v)) throw errPy('SyntaxError', 'invalid syntax', t.linea,
@@ -559,16 +591,44 @@ class Parser {
     }
     if (t.t === 'NAME'){
       const s = this.k[this.i + 1];
-      if (s.t === 'OP' && ['=','+=','-=','*='].includes(s.v)){
+      if (s.t === 'OP' && ASIGNA.includes(s.v)){
         this.sig(); this.sig();
         if (this.ver.t === 'NEWLINE' || this.ver.t === 'EOF') throw errPy('SyntaxError', 'invalid syntax', t.linea, `Después del ${s.v} va el valor que quieres guardar.`);
         return {tipo:'asig', nombre:t.v, op:s.v, expr:this.expr(), linea:t.linea};
       }
+      if (s.t === 'OP' && s.v === ',') throw errPy('Juego', 'en este juego no hace falta guardar varias variables en una sola línea', t.linea,
+        'Escribe cada variable en su propia línea, con su = y su valor.');
     }
     const e = this.expr();
-    if (this.op('=')) throw errPy('SyntaxError', "cannot assign to function call here. Maybe you meant '==' instead of '='?", t.linea,
-      'Un solo = guarda un valor en una variable, y a su izquierda va el nombre de la variable. Para comparar se usa ==.');
+    if (this.ver.t === 'OP' && ASIGNA.includes(this.ver.v)){
+      const o = this.sig().v;
+      if (e.tipo === 'indice' || e.tipo === 'attr'){
+        if (this.ver.t === 'NEWLINE' || this.ver.t === 'EOF') throw errPy('SyntaxError', 'invalid syntax', t.linea, `Después del ${o} va el valor que quieres guardar.`);
+        return {tipo:e.tipo === 'indice' ? 'asigIndice' : 'asigAttr', obj:e.obj, idx:e.idx, nombre:e.nombre, op:o, expr:this.expr(), linea:t.linea};
+      }
+      const que = e.tipo === 'llamada' ? 'function call' : e.tipo === 'const' ? 'literal' : 'expression';
+      if (o !== '=') throw errPy('SyntaxError', `'${que}' is an illegal expression for augmented assignment`, t.linea,
+        `A la izquierda del ${o} va el nombre de una variable.`);
+      throw errPy('SyntaxError', `cannot assign to ${que} here. Maybe you meant '==' instead of '='?`, t.linea,
+        'Un solo = guarda un valor en una variable, y a su izquierda va el nombre de la variable. Para comparar se usa ==.');
+    }
     return {tipo:'expr', expr:e, linea:t.linea};
+  }
+  // from collections import deque · import collections
+  importar(){
+    const t = this.sig(), forma = 'Se escribe así: from collections import deque';
+    const nombre = () => { if (this.ver.t !== 'NAME') throw errPy('SyntaxError', 'invalid syntax', t.linea, forma); return this.sig().v; };
+    let modulo, nombres = null;
+    if (t.v === 'from'){
+      modulo = nombre();
+      if (!this.kw('import')) throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Falta import. ' + forma);
+      this.sig();
+      nombres = [nombre()];
+      while (this.op(',')){ this.sig(); nombres.push(nombre()); }
+    } else modulo = nombre();
+    if (this.kw('as')) throw errPy('Juego', 'en este juego no hace falta as', t.linea, forma);
+    this.finDeLinea();
+    return {tipo:'import', modulo, nombres, linea:t.linea};
   }
   dosPuntos(kw, linea){
     if (this.op(':')){ this.sig(); return; }
@@ -654,7 +714,16 @@ class Parser {
   comp(){
     const a = this.suma(), ops = [];
     let linea = 0;
-    while (this.ver.t === 'OP' && ['==','!=','<','>','<=','>='].includes(this.ver.v)){ const t = this.sig(); linea = t.linea; ops.push([t.v, this.suma()]); }
+    for (;;){
+      const t = this.ver, s = this.k[this.i + 1];
+      let o;
+      if (t.t === 'OP' && ['==','!=','<','>','<=','>='].includes(t.v)){ this.sig(); o = t.v; }
+      else if (this.kw('in')){ this.sig(); o = 'in'; }
+      else if (this.kw('not') && s.t === 'KW' && s.v === 'in'){ this.sig(); this.sig(); o = 'not in'; }
+      else if (this.kw('is')){ this.sig(); o = 'is'; if (this.kw('not')){ this.sig(); o = 'is not'; } }
+      else break;
+      linea = t.linea; ops.push([o, this.suma()]);
+    }
     return ops.length ? {tipo:'cmp', a, ops, linea} : a;
   }
   suma(){ let a = this.term(); while (this.op('+') || this.op('-')){ const t = this.sig(); a = {tipo:'bin', o:t.v, a, b:this.term(), linea:t.linea}; } return a; }
@@ -674,20 +743,73 @@ class Parser {
     else if (t.t === 'KW' && t.v === 'False') n = {tipo:'const', v:false};
     else if (t.t === 'KW' && t.v === 'None') n = {tipo:'const', v:null};
     else if (t.t === 'NAME') n = {tipo:'nombre', n:t.v, linea:t.linea};
-    else if (t.t === 'OP' && t.v === '('){ n = this.expr(); if (!this.op(')')) throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Falta cerrar el paréntesis.'); this.sig(); }
+    else if (t.t === 'OP' && t.v === '('){
+      if (this.op(')')) throw errPy('Juego', 'en este juego no hacen falta las tuplas', t.linea, 'Para guardar varios valores, usa una lista: [ ].');
+      n = this.expr();
+      if (this.op(',')) throw errPy('Juego', 'en este juego no hacen falta las tuplas', t.linea, 'Para guardar varios valores, usa una lista: [ ].');
+      if (!this.op(')')) throw errPy('SyntaxError', 'invalid syntax', t.linea, 'Falta cerrar el paréntesis.');
+      this.sig();
+    }
+    else if (t.t === 'OP' && t.v === '[') n = {tipo:'lista', elems:this.valores(']', t.linea), linea:t.linea};
+    else if (t.t === 'OP' && t.v === '{'){
+      if (this.op('}')){ this.sig(); n = {tipo:'dict', pares:[], linea:t.linea}; }
+      else {
+        const primero = this.expr();
+        if (this.op(':')){
+          const pares = [];
+          let k = primero;
+          for (;;){
+            this.sig();
+            pares.push([k, this.expr()]);
+            if (this.op(',')){ this.sig(); if (this.op('}')) break; k = this.expr(); if (!this.op(':')) throw errPy('SyntaxError', "':' expected after dictionary key", t.linea, 'En un diccionario, cada clave lleva dos puntos y su valor: {"Ana": 2}.'); continue; }
+            break;
+          }
+          if (!this.op('}')) throw errPy('SyntaxError', 'invalid syntax. Perhaps you forgot a comma?', t.linea, 'Entre los pares del diccionario va una coma.');
+          this.sig();
+          n = {tipo:'dict', pares, linea:t.linea};
+        } else {
+          const elems = [primero];
+          if (this.op(',')){ this.sig(); elems.push(...this.valores('}', t.linea)); }
+          else if (!this.op('}')) throw errPy('SyntaxError', 'invalid syntax. Perhaps you forgot a comma?', t.linea, 'Entre los valores va una coma.');
+          else this.sig();
+          n = {tipo:'conjunto', elems, linea:t.linea};
+        }
+      }
+    }
     else if (t.t === 'NEWLINE' || t.t === 'EOF') throw errPy('SyntaxError', 'invalid syntax', t.linea, 'La línea quedó incompleta.');
     else throw errPy('SyntaxError', 'invalid syntax', t.linea, t.t === 'KW' ? `${t.v} no puede ir en esa parte de la línea.` : '');
-    while (this.op('(')){
-      const p = this.sig(), args = [];
-      while (!this.op(')')){
-        args.push(this.expr());
-        if (this.op(',')){ this.sig(); continue; }
-        if (!this.op(')')) throw errPy('SyntaxError', 'invalid syntax. Perhaps you forgot a comma?', p.linea, 'Entre los valores que van dentro de los paréntesis va una coma.');
-      }
-      this.sig();
-      n = {tipo:'llamada', f:n, args, linea:p.linea, id:++idNodo};
+    for (;;){
+      if (this.op('(')){
+        const p = this.sig();
+        n = {tipo:'llamada', f:n, args:this.valores(')', p.linea), linea:p.linea, id:++idNodo};
+      } else if (this.op('[')){
+        const p = this.sig();
+        if (this.op(']')) throw errPy('SyntaxError', 'invalid syntax', p.linea, 'Dentro de los corchetes va la posición o la clave, por ejemplo ruta[0].');
+        if (this.op(':')) throw errPy('Juego', 'en este juego no hacen falta las rebanadas [a:b]', p.linea, 'Pide un casillero a la vez, por ejemplo ruta[0].');
+        const idx = this.expr();
+        if (this.op(':')) throw errPy('Juego', 'en este juego no hacen falta las rebanadas [a:b]', p.linea, 'Pide un casillero a la vez, por ejemplo ruta[0].');
+        if (!this.op(']')) throw errPy('SyntaxError', 'invalid syntax', p.linea, 'Falta cerrar el corchete.');
+        this.sig();
+        n = {tipo:'indice', obj:n, idx, linea:p.linea};
+      } else if (this.op('.')){
+        const p = this.sig();
+        if (this.ver.t !== 'NAME') throw errPy('SyntaxError', 'invalid syntax', p.linea, 'Después del punto va el nombre de un método, por ejemplo ruta.append(paso).');
+        n = {tipo:'attr', obj:n, nombre:this.sig().v, linea:p.linea};
+      } else break;
     }
     return n;
+  }
+  // los valores entre ( ), [ ] o { }, separados por comas; el que abre ya se leyó
+  valores(cierra, linea){
+    const r = [];
+    while (!this.op(cierra)){
+      r.push(this.expr());
+      if (this.op(',')){ this.sig(); continue; }
+      if (!this.op(cierra)) throw errPy('SyntaxError', 'invalid syntax. Perhaps you forgot a comma?', linea,
+        cierra === ')' ? 'Entre los valores que van dentro de los paréntesis va una coma.' : 'Entre los valores va una coma.');
+    }
+    this.sig();
+    return r;
   }
 }
 function parsear(src){ return new Parser(tokenizar(src)).programa(); }
@@ -700,19 +822,43 @@ class Rango {
   *[Symbol.iterator](){ for (let i = 0, x = this.a; i < this.largo; i++, x += this.p) yield x; }
 }
 class FuncPy { constructor(nombre, clase, fn){ this.nombre = nombre; this.clase = clase; this.fn = fn; } }
+// Las listas de Python son arreglos de JavaScript; lo demás tiene su clase.
+class Deque { constructor(a = []){ this.a = a; } }
+class DictPy {
+  constructor(){ this.m = new Map(); }   // clave normalizada → [clave, valor]
+  get size(){ return this.m.size; }
+  claves(){ return [...this.m.values()].map(([k]) => k); }
+}
+class SetPy {
+  constructor(){ this.m = new Map(); }   // clave normalizada → valor
+  get size(){ return this.m.size; }
+}
+class MetodoPy { constructor(nombre, obj, fn){ this.nombre = nombre; this.obj = obj; this.fn = fn; } }
+class Iterador { constructor(tipo, items){ this.tipo = tipo; this.items = items; } }
+class ModuloPy { constructor(nombre, attrs){ this.nombre = nombre; this.attrs = attrs; } }
 
 function tipoPy(v){
   if (v === null || v === undefined) return 'NoneType';
   if (v === true || v === false) return 'bool';
   if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float';
   if (typeof v === 'string') return 'str';
+  if (Array.isArray(v)) return 'list';
+  if (v instanceof Deque) return 'collections.deque';
+  if (v instanceof DictPy) return 'dict';
+  if (v instanceof SetPy) return 'set';
   if (v instanceof Rango) return 'range';
-  if (v instanceof FuncPy) return v.clase === 'nativa' ? 'builtin_function_or_method' : 'function';
+  if (v instanceof MetodoPy) return 'builtin_function_or_method';
+  if (v instanceof Iterador) return v.tipo;
+  if (v instanceof ModuloPy) return 'module';
+  if (v instanceof FuncPy) return v.clase === 'nativa' ? 'builtin_function_or_method' : v.clase === 'clase' ? 'type' : 'function';
   return 'object';
 }
 function verdad(v){
   if (v === null || v === undefined || v === false || v === 0 || v === '') return false;
   if (v instanceof Rango) return v.largo > 0;
+  if (Array.isArray(v)) return v.length > 0;
+  if (v instanceof Deque) return v.a.length > 0;
+  if (v instanceof DictPy || v instanceof SetPy) return v.size > 0;
   return true;
 }
 function strPy(v){
@@ -722,10 +868,46 @@ function strPy(v){
   if (typeof v === 'number') return Number.isFinite(v) ? String(v) : (v > 0 ? 'inf' : '-inf');
   if (typeof v === 'string') return v;
   if (v instanceof Rango) return v.p === 1 ? `range(${v.a}, ${v.b})` : `range(${v.a}, ${v.b}, ${v.p})`;
-  if (v instanceof FuncPy) return `<function ${v.nombre}>`;
-  return String(v);
+  if (v instanceof FuncPy) return v.clase === 'clase' ? `<class '${v.nombre}'>` : `<function ${v.nombre}>`;
+  if (v instanceof MetodoPy) return `<built-in method ${v.nombre} of ${tipoPy(v.obj)} object>`;
+  if (v instanceof Iterador) return `<${v.tipo} object>`;
+  if (v instanceof ModuloPy) return `<module '${v.nombre}'>`;
+  return reprPy(v);
+}
+// Como el repr de Python: los textos van entre comillas, como se ven dentro de una lista.
+function reprPy(v, vistos = new Set()){
+  if (typeof v === 'string'){
+    const q = v.includes("'") && !v.includes('"') ? '"' : "'";
+    return q + v.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/\t/g, '\\t').replace(q === "'" ? /'/g : /"/g, '\\' + q) + q;
+  }
+  const lleno = Array.isArray(v) || v instanceof Deque || v instanceof DictPy || v instanceof SetPy;
+  if (!lleno) return strPy(v);
+  if (vistos.has(v)) return Array.isArray(v) || v instanceof Deque ? '[...]' : '{...}';
+  vistos.add(v);
+  let r;
+  if (Array.isArray(v)) r = '[' + v.map(x => reprPy(x, vistos)).join(', ') + ']';
+  else if (v instanceof Deque) r = 'deque([' + v.a.map(x => reprPy(x, vistos)).join(', ') + '])';
+  else if (v instanceof DictPy) r = '{' + [...v.m.values()].map(([k, x]) => reprPy(k, vistos) + ': ' + reprPy(x, vistos)).join(', ') + '}';
+  else r = v.size ? '{' + [...v.m.values()].map(x => reprPy(x, vistos)).join(', ') + '}' : 'set()';
+  vistos.delete(v);
+  return r;
 }
 const esNum = v => typeof v === 'number' || typeof v === 'boolean';
+function igualPy(a, b){
+  if (esNum(a) && esNum(b)) return +a === +b;
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => igualPy(x, b[i]));
+  if (a instanceof Deque && b instanceof Deque) return igualPy(a.a, b.a);
+  if (a instanceof SetPy && b instanceof SetPy) return a.size === b.size && [...a.m.keys()].every(k => b.m.has(k));
+  if (a instanceof DictPy && b instanceof DictPy) return a.size === b.size && [...a.m].every(([k, [, x]]) => b.m.has(k) && igualPy(x, b.m.get(k)[1]));
+  return a === b;
+}
+// La clave con que se guarda en un dict o un set: lo que puede cambiar (listas, dicts, sets) no sirve de clave.
+function hashPy(v, linea){
+  if (Array.isArray(v) || v instanceof Deque || v instanceof DictPy || v instanceof SetPy)
+    throw errPy('TypeError', `unhashable type: '${tipoPy(v)}'`, linea,
+      'Una lista, un diccionario o un conjunto no pueden ser clave: pueden cambiar, y con ellos cambiaría su casillero (ep. 012). Usa un texto o un número.');
+  return v === true ? 1 : v === false ? 0 : v === undefined ? null : v;
+}
 
 function binaria(o, a, b, linea){
   const noSe = () => errPy('TypeError', `unsupported operand type(s) for ${o}: '${tipoPy(a)}' and '${tipoPy(b)}'`, linea,
@@ -733,12 +915,19 @@ function binaria(o, a, b, linea){
   if (o === '+'){
     if (esNum(a) && esNum(b)) return +a + +b;
     if (typeof a === 'string' && typeof b === 'string') return a + b;
+    if (Array.isArray(a)){
+      if (!Array.isArray(b)) throw errPy('TypeError', `can only concatenate list (not "${tipoPy(b)}") to list`, linea, 'Con + se juntan dos listas. Para agregar un valor, usa append().');
+      return [...a, ...b];
+    }
+    if (a instanceof Deque && b instanceof Deque) return new Deque([...a.a, ...b.a]);
     throw noSe();
   }
   if (o === '*'){
     if (esNum(a) && esNum(b)) return a * b;
     if (typeof a === 'string' && typeof b === 'number' && Number.isInteger(b)) return a.repeat(Math.max(0, b));
     if (typeof b === 'string' && typeof a === 'number' && Number.isInteger(a)) return b.repeat(Math.max(0, a));
+    const [l, n] = Array.isArray(a) ? [a, b] : [b, a];
+    if (Array.isArray(l) && typeof n === 'number' && Number.isInteger(n)) return Array.from({length:Math.max(0, n)}, () => l).flat();
     throw noSe();
   }
   if (!esNum(a) || !esNum(b)) throw noSe();
@@ -753,12 +942,7 @@ function binaria(o, a, b, linea){
   throw noSe();
 }
 function comparar(o, a, b, linea){
-  if (o === '==' || o === '!='){
-    let igual;
-    if (esNum(a) && esNum(b)) igual = +a === +b;
-    else igual = a === b;
-    return o === '==' ? igual : !igual;
-  }
+  if (o === '==' || o === '!=') return o === '==' ? igualPy(a, b) : !igualPy(a, b);
   const ok = (esNum(a) && esNum(b)) || (typeof a === 'string' && typeof b === 'string');
   if (!ok) throw errPy('TypeError', `'${o}' not supported between instances of '${tipoPy(a)}' and '${tipoPy(b)}'`, linea,
     typeof a === 'string' || typeof b === 'string' ? 'Python no compara texto con números (lo vimos en el ep. 003).' : '');
@@ -767,13 +951,252 @@ function comparar(o, a, b, linea){
 }
 
 // ---------- funciones que entiende el programa ----------
-const ACCIONES = ['avanzar','girar_izquierda','girar_derecha','esperar','recoger'];
+const ACCIONES = ['avanzar','girar_izquierda','girar_derecha','esperar','recoger','pagar','subir','entregar'];
+// lo que va dentro de los paréntesis de cada orden (las demás van vacías)
+const ARGUMENTOS = {pagar:['cantidad'], subir:['pasajero']};
+// Las preguntas no gastan tiempo. Las primeras devuelven True o False; las de DATOS, un valor (texto, lista o diccionario).
 const SENSORES = ['hay_camino','hay_camino_izquierda','hay_camino_derecha','hay_paquete','semaforo_en_rojo','en_la_meta'];
+const DATOS = ['letrero','gps','indicacion','parada','paquete','casa','pedidos'];
 function enteroPy(v, linea){
   if (v === true || v === false) return +v;
   if (typeof v === 'number' && Number.isInteger(v)) return v;
   throw errPy('TypeError', `'${tipoPy(v)}' object cannot be interpreted as an integer`, linea, 'range() solo acepta números enteros.');
 }
+// Lo que se puede recorrer con for, como una lista de JavaScript (el for de las listas va casillero por casillero, en vivo).
+function elementos(v, linea, quien){
+  if (Array.isArray(v)) return v.slice();
+  if (typeof v === 'string') return [...v];
+  if (v instanceof Rango) return [...v];
+  if (v instanceof Deque) return v.a.slice();
+  if (v instanceof DictPy) return v.claves();
+  if (v instanceof SetPy) return [...v.m.values()];
+  if (v instanceof Iterador) return v.items.slice();
+  throw errPy('TypeError', `'${tipoPy(v)}' object is not iterable`, linea, quien ? `${quien} necesita algo que se pueda recorrer, como una lista.` : '');
+}
+// En el carrito, mover o revisar casilleros de una lista también gasta tiempo: un tiempo por casillero.
+// El evento lleva cuáles, para que la memoria los marque uno por uno.
+function* costo(obj, op, indices, linea){
+  if (indices.length) yield {tipo:'costo', obj, op, indices, n:indices.length, linea};
+}
+const rango = (a, b) => Array.from({length:Math.max(0, b - a)}, (_, i) => a + i);
+// Dónde está x en una lista (o -1), con lo que cuesta revisar uno por uno.
+function* buscarEn(lista, x, linea, obj = lista){
+  const i = lista.findIndex(e => igualPy(e, x));
+  yield* costo(obj, 'buscar', rango(0, i < 0 ? lista.length : i + 1), linea);
+  return i;
+}
+function* contiene(c, x, linea){
+  if (Array.isArray(c)) return (yield* buscarEn(c, x, linea)) >= 0;
+  if (c instanceof Deque) return (yield* buscarEn(c.a, x, linea, c)) >= 0;
+  if (c instanceof DictPy || c instanceof SetPy) return c.m.has(hashPy(x, linea));
+  if (typeof c === 'string'){
+    if (typeof x !== 'string') throw errPy('TypeError', `'in <string>' requires string as left operand, not ${tipoPy(x)}`, linea, 'Para buscar dentro de un texto, lo que buscas también tiene que ser texto.');
+    return c.includes(x);
+  }
+  if (c instanceof Rango){
+    if (!esNum(x) || !Number.isInteger(+x)) return false;
+    const k = (+x - c.a) / c.p;
+    return Number.isInteger(k) && k >= 0 && k < c.largo;
+  }
+  throw errPy('TypeError', `argument of type '${tipoPy(c)}' is not iterable`, linea, 'Después de in va algo donde buscar: una lista, un texto, un diccionario o un conjunto.');
+}
+function posicion(i, largo, linea, que){
+  if (i === true || i === false) i = +i;
+  if (typeof i !== 'number' || !Number.isInteger(i)) throw errPy('TypeError', `${que} indices must be integers or slices, not ${tipoPy(i)}`, linea,
+    'La posición de un casillero es un número entero: ruta[0] es el primero.');
+  return i < 0 ? i + largo : i;
+}
+function* indexar(o, i, linea){
+  if (Array.isArray(o) || typeof o === 'string'){
+    const que = Array.isArray(o) ? 'list' : 'string', k = posicion(i, o.length, linea, que);
+    if (k < 0 || k >= o.length) throw errPy('IndexError', `${que} index out of range`, linea,
+      o.length ? `Los casilleros van del 0 al ${o.length - 1}: ese no existe.` : 'Está vacía: no tiene ningún casillero.');
+    return o[k];
+  }
+  if (o instanceof Deque){
+    const k = posicion(i, o.a.length, linea, 'sequence');
+    if (k < 0 || k >= o.a.length) throw errPy('IndexError', 'deque index out of range', linea, o.a.length ? `Los casilleros van del 0 al ${o.a.length - 1}: ese no existe.` : 'La fila está vacía.');
+    // en medio de una deque hay que ir recorriendo desde la punta más cercana (ep. 011)
+    yield* costo(o, 'buscar', k <= o.a.length - 1 - k ? rango(0, k) : rango(k + 1, o.a.length).reverse(), linea);
+    return o.a[k];
+  }
+  if (o instanceof DictPy){
+    const h = hashPy(i, linea);
+    if (!o.m.has(h)) throw errPy('KeyError', reprPy(i), linea,
+      `${reprPy(i)} no está en el diccionario. Antes de pedirlo, pregunta con if ${reprPy(i)} in …: (o usa .get(${reprPy(i)}, 0), que da 0 si no está).`);
+    return o.m.get(h)[1];
+  }
+  if (o instanceof Rango){
+    const k = posicion(i, o.largo, linea, 'range object');
+    if (k < 0 || k >= o.largo) throw errPy('IndexError', 'range object index out of range', linea);
+    return o.a + k * o.p;
+  }
+  throw errPy('TypeError', `'${tipoPy(o)}' object is not subscriptable`, linea,
+    o === null || o === undefined ? 'Esa variable vale None: no es una lista ni un diccionario. ¿La función devolvió None?' : 'Los corchetes sirven para pedir un casillero de una lista o una clave de un diccionario.');
+}
+function* guardarEn(o, i, v, linea){
+  if (Array.isArray(o)){
+    const k = posicion(i, o.length, linea, 'list');
+    if (k < 0 || k >= o.length) throw errPy('IndexError', 'list assignment index out of range', linea, 'Solo se puede cambiar un casillero que ya existe. Para agregar uno nuevo, usa append().');
+    o[k] = v; return;
+  }
+  if (o instanceof Deque){
+    const k = posicion(i, o.a.length, linea, 'sequence');
+    if (k < 0 || k >= o.a.length) throw errPy('IndexError', 'deque index out of range', linea);
+    o.a[k] = v; return;
+  }
+  if (o instanceof DictPy){ o.m.set(hashPy(i, linea), [i, v]); return; }
+  throw errPy('TypeError', `'${tipoPy(o)}' object does not support item assignment`, linea,
+    typeof o === 'string' ? 'Un texto no se puede cambiar casillero por casillero.' : '');
+}
+function nuevoDict(pares){ const d = new DictPy(); for (const [k, v] of pares) d.m.set(hashPy(k), [k, v]); return d; }
+function nuevoSet(items, linea){ const s = new SetPy(); for (const x of items) s.m.set(hashPy(x, linea), x); return s; }
+
+// Los métodos: argumentos mínimos y máximos, y lo que hacen. Los mensajes de error son los de Python 3.12.
+function aridad(tipo, nombre, args, min, max, linea){
+  const n = args.length;
+  if (n >= min && n <= max) return;
+  let m;
+  if (max === 0) m = `${tipo}.${nombre}() takes no arguments (${n} given)`;
+  else if (min === 1 && max === 1) m = `${tipo}.${nombre}() takes exactly one argument (${n} given)`;
+  else if (n < min) m = `${nombre} expected ${min === max ? '' : 'at least '}${min} argument${min === 1 ? '' : 's'}, got ${n}`;
+  else m = `${nombre} expected at most ${max} argument${max === 1 ? '' : 's'}, got ${n}`;
+  throw errPy('TypeError', m, linea, max === 0 ? `${nombre}() va con los paréntesis vacíos.` : '');
+}
+const vacia = (tipo, linea) => errPy('IndexError', tipo === 'deque' ? 'pop from an empty deque' : 'pop from empty list', linea,
+  'Está vacía: no hay nada que sacar. Antes de sacar, pregunta si tiene algo, con while … : o if … : (ep. 010).');
+const METODOS = {
+  list:{
+    *append(l, a, n){ aridad('list', 'append', a, 1, 1, n); l.push(a[0]); return null; },
+    *pop(l, a, n){
+      aridad('list', 'pop', a, 0, 1, n);
+      if (!l.length) throw vacia('list', n);
+      const k = a.length ? posicion(a[0], l.length, n, 'list') : l.length - 1;
+      if (k < 0 || k >= l.length) throw errPy('IndexError', 'pop index out of range', n, `Los casilleros van del 0 al ${l.length - 1}.`);
+      const x = l.splice(k, 1)[0];
+      yield* costo(l, 'mover', rango(k, l.length), n);   // los de atrás se corren un casillero para tapar el hueco
+      return x;
+    },
+    *insert(l, a, n){
+      aridad('list', 'insert', a, 2, 2, n);
+      let k = posicion(a[0], l.length, n, 'list');
+      k = Math.max(0, Math.min(l.length, k));
+      l.splice(k, 0, a[1]);
+      yield* costo(l, 'mover', rango(k + 1, l.length), n);   // los de atrás se corren para hacerle lugar
+      return null;
+    },
+    *remove(l, a, n){
+      aridad('list', 'remove', a, 1, 1, n);
+      const k = yield* buscarEn(l, a[0], n);
+      if (k < 0) throw errPy('ValueError', 'list.remove(x): x not in list', n, `${reprPy(a[0])} no está en la lista.`);
+      l.splice(k, 1);
+      yield* costo(l, 'mover', rango(k, l.length), n);
+      return null;
+    },
+    *index(l, a, n){
+      aridad('list', 'index', a, 1, 1, n);
+      const k = yield* buscarEn(l, a[0], n);
+      if (k < 0) throw errPy('ValueError', `${reprPy(a[0])} is not in list`, n, `${reprPy(a[0])} no está en la lista. Pregunta antes con in.`);
+      return k;
+    },
+    *count(l, a, n){ aridad('list', 'count', a, 1, 1, n); yield* costo(l, 'buscar', rango(0, l.length), n); return l.filter(e => igualPy(e, a[0])).length; },
+    *reverse(l, a, n){ aridad('list', 'reverse', a, 0, 0, n); l.reverse(); return null; },
+    *clear(l, a, n){ aridad('list', 'clear', a, 0, 0, n); l.length = 0; return null; },
+    *copy(l, a, n){ aridad('list', 'copy', a, 0, 0, n); return l.slice(); },
+    *extend(l, a, n){ aridad('list', 'extend', a, 1, 1, n); l.push(...elementos(a[0], n, 'extend()')); return null; },
+    *sort(l, a, n){ aridad('list', 'sort', a, 0, 0, n); l.splice(0, l.length, ...ordenar(l, n)); return null; },
+  },
+  deque:{
+    *append(d, a, n){ aridad('deque', 'append', a, 1, 1, n); d.a.push(a[0]); return null; },
+    *appendleft(d, a, n){ aridad('deque', 'appendleft', a, 1, 1, n); d.a.unshift(a[0]); return null; },
+    *pop(d, a, n){ aridad('deque', 'pop', a, 0, 0, n); if (!d.a.length) throw vacia('deque', n); return d.a.pop(); },
+    *popleft(d, a, n){ aridad('deque', 'popleft', a, 0, 0, n); if (!d.a.length) throw vacia('deque', n); return d.a.shift(); },
+    *extend(d, a, n){ aridad('deque', 'extend', a, 1, 1, n); d.a.push(...elementos(a[0], n, 'extend()')); return null; },
+    *clear(d, a, n){ aridad('deque', 'clear', a, 0, 0, n); d.a.length = 0; return null; },
+    *copy(d, a, n){ aridad('deque', 'copy', a, 0, 0, n); return new Deque(d.a.slice()); },
+    *count(d, a, n){ aridad('deque', 'count', a, 1, 1, n); yield* costo(d, 'buscar', rango(0, d.a.length), n); return d.a.filter(e => igualPy(e, a[0])).length; },
+    *rotate(d, a, n){
+      aridad('deque', 'rotate', a, 0, 1, n);
+      const k = a.length ? enteroPy(a[0], n) : 1, L = d.a.length;
+      if (L){ const r = ((k % L) + L) % L; d.a.unshift(...d.a.splice(L - r, r)); }
+      return null;
+    },
+    *reverse(d, a, n){ aridad('deque', 'reverse', a, 0, 0, n); d.a.reverse(); return null; },
+  },
+  dict:{
+    *get(d, a, n){ aridad('dict', 'get', a, 1, 2, n); const h = hashPy(a[0], n); return d.m.has(h) ? d.m.get(h)[1] : (a.length > 1 ? a[1] : null); },
+    *keys(d, a, n){ aridad('dict', 'keys', a, 0, 0, n); return d.claves(); },
+    *values(d, a, n){ aridad('dict', 'values', a, 0, 0, n); return [...d.m.values()].map(([, v]) => v); },
+    *pop(d, a, n){
+      aridad('dict', 'pop', a, 1, 2, n);
+      const h = hashPy(a[0], n);
+      if (!d.m.has(h)){ if (a.length > 1) return a[1]; throw errPy('KeyError', reprPy(a[0]), n, `${reprPy(a[0])} no está en el diccionario.`); }
+      const v = d.m.get(h)[1]; d.m.delete(h); return v;
+    },
+    *setdefault(d, a, n){ aridad('dict', 'setdefault', a, 1, 2, n); const h = hashPy(a[0], n); if (!d.m.has(h)) d.m.set(h, [a[0], a.length > 1 ? a[1] : null]); return d.m.get(h)[1]; },
+    *clear(d, a, n){ aridad('dict', 'clear', a, 0, 0, n); d.m.clear(); return null; },
+    *copy(d, a, n){ aridad('dict', 'copy', a, 0, 0, n); const c = new DictPy(); c.m = new Map(d.m); return c; },
+  },
+  set:{
+    *add(s, a, n){ aridad('set', 'add', a, 1, 1, n); s.m.set(hashPy(a[0], n), a[0]); return null; },
+    *remove(s, a, n){
+      aridad('set', 'remove', a, 1, 1, n);
+      const h = hashPy(a[0], n);
+      if (!s.m.has(h)) throw errPy('KeyError', reprPy(a[0]), n, `${reprPy(a[0])} no está en el conjunto. discard() lo quita sin dar error.`);
+      s.m.delete(h); return null;
+    },
+    *discard(s, a, n){ aridad('set', 'discard', a, 1, 1, n); s.m.delete(hashPy(a[0], n)); return null; },
+    *clear(s, a, n){ aridad('set', 'clear', a, 0, 0, n); s.m.clear(); return null; },
+    *copy(s, a, n){ aridad('set', 'copy', a, 0, 0, n); const c = new SetPy(); c.m = new Map(s.m); return c; },
+  },
+  str:{
+    *lower(s, a, n){ aridad('str', 'lower', a, 0, 0, n); return s.toLowerCase(); },
+    *upper(s, a, n){ aridad('str', 'upper', a, 0, 0, n); return s.toUpperCase(); },
+  },
+};
+// Los que Python tiene y este juego no: se avisa sin inventar un error de Python.
+const OTROS_METODOS = {
+  list:[], deque:['extendleft','index','insert','maxlen','remove'],
+  dict:['items','fromkeys','popitem','update'],
+  set:['difference','difference_update','intersection','intersection_update','isdisjoint','issubset','issuperset','pop','symmetric_difference','symmetric_difference_update','union','update'],
+  str:['capitalize','casefold','center','count','encode','endswith','expandtabs','find','format','format_map','index','isalnum','isalpha','isascii','isdecimal','isdigit','isidentifier','islower','isnumeric','isprintable','isspace','istitle','isupper','join','ljust','lstrip','maketrans','partition','removeprefix','removesuffix','replace','rfind','rindex','rjust','rpartition','rsplit','rstrip','split','splitlines','startswith','strip','swapcase','title','translate','zfill'],
+};
+function atributo(o, nombre, linea){
+  const clase = Array.isArray(o) ? 'list' : o instanceof Deque ? 'deque' : o instanceof DictPy ? 'dict' : o instanceof SetPy ? 'set' : typeof o === 'string' ? 'str' : null;
+  if (o instanceof ModuloPy){
+    if (nombre in o.attrs) return o.attrs[nombre];
+    throw errPy('AttributeError', `module '${o.nombre}' has no attribute '${nombre}'`, linea);
+  }
+  const propios = clase ? METODOS[clase] : {};
+  if (nombre in propios) return new MetodoPy(nombre, o, (args, n) => propios[nombre](o, args, n));
+  if (clase && OTROS_METODOS[clase].includes(nombre)) throw errPy('Juego', `en este juego no hace falta ${nombre}()`, linea,
+    nombre === 'items' ? 'Recorre el diccionario con for nombre in pedidos: y pide cada valor con pedidos[nombre].' : `Los métodos de ${clase} que entiende el carrito están en «Lo que entiende el carrito».`);
+  const tipo = tipoPy(o);
+  let mejor = null, dm = Infinity;
+  for (const c of Object.keys(propios)){ const d = distancia(nombre, c); if (d < dm){ dm = d; mejor = c; } }
+  const tope = Math.max(1, Math.min(3, Math.floor(nombre.length / 3)));
+  const sugerencia = mejor && dm <= tope ? `. Did you mean: '${mejor}'?` : '';
+  let ayuda = sugerencia ? `¿Quisiste decir ${mejor}?` : '';
+  if (clase === 'list' && (nombre === 'popleft' || nombre === 'appendleft'))
+    ayuda = `Una lista no tiene ${nombre}(): eso es de deque. Impórtala con from collections import deque y crea la fila con deque(...).`;
+  else if (clase === 'list' && nombre === 'add') ayuda = 'add() es de los conjuntos (set). A una lista se le agrega con append().';
+  else if (clase === 'set' && nombre === 'append') ayuda = 'Un conjunto no tiene orden: no se agrega «al final». Se agrega con add().';
+  else if (!clase) ayuda = o === null || o === undefined ? 'Esa variable vale None: no es una lista. ¿La función devolvió None?' : `Un ${tipo} no tiene métodos en este juego.`;
+  throw errPy('AttributeError', `'${tipo}' object has no attribute '${nombre}'${sugerencia}`, linea, ayuda);
+}
+function ordenar(items, linea){
+  const nums = items.every(esNum), textos = items.every(x => typeof x === 'string');
+  if (!nums && !textos) throw errPy('TypeError', `'<' not supported between instances of '${tipoPy(items.find(x => !esNum(x)))}' and '${tipoPy(items.find(esNum))}'`, linea,
+    'Para ordenar, todos tienen que ser números o todos textos.');
+  return items.slice().sort((a, b) => nums ? a - b : a < b ? -1 : a > b ? 1 : 0);
+}
+const DEQUE = new FuncPy('deque', 'clase', function*(args, linea){
+  if (args.length > 1) throw errPy('TypeError', `deque() takes at most 1 argument (${args.length} given)`, linea);
+  return new Deque(args.length ? elementos(args[0], linea, 'deque()') : []);
+});
+const MODULOS = {collections:{deque:DEQUE}};
+const OTROS_DE_COLLECTIONS = ['Counter', 'defaultdict', 'OrderedDict', 'namedtuple', 'ChainMap', 'UserDict', 'UserList', 'UserString', 'abc'];
+const OTROS_MODULOS = ['random', 'math', 'time', 'os', 'sys', 'turtle', 'itertools', 'heapq', 'queue', 'string', 're', 'json', 'datetime', 'functools', 'statistics', 'copy'];
 const NATIVAS = {
   *print(args){ yield {tipo:'print', texto:args.map(strPy).join(' ')}; return null; },
   *range(args, linea){
@@ -797,15 +1220,33 @@ const NATIVAS = {
   *abs(args, linea){ if (!esNum(args[0])) throw errPy('TypeError', `bad operand type for abs(): '${tipoPy(args[0])}'`, linea); return Math.abs(+args[0]); },
   *len(args, linea){
     const v = args[0];
-    if (typeof v === 'string') return v.length;
+    if (typeof v === 'string' || Array.isArray(v)) return v.length;
     if (v instanceof Rango) return v.largo;
+    if (v instanceof Deque) return v.a.length;
+    if (v instanceof DictPy || v instanceof SetPy) return v.size;
     throw errPy('TypeError', `object of type '${tipoPy(v)}' has no len()`, linea);
   },
+  *list(args, linea){ return args.length ? elementos(args[0], linea, 'list()') : []; },
+  *set(args, linea){ return nuevoSet(args.length ? elementos(args[0], linea, 'set()') : [], linea); },
+  *dict(args, linea){
+    if (!args.length) return new DictPy();
+    if (args[0] instanceof DictPy){ const c = new DictPy(); c.m = new Map(args[0].m); return c; }
+    throw errPy('Juego', 'en este juego dict() se usa vacío o con otro diccionario', linea, 'Escribe el diccionario con llaves: {"Ana": 2, "Beto": 1}.');
+  },
+  *reversed(args, linea){
+    const v = args[0];
+    if (!(Array.isArray(v) || typeof v === 'string' || v instanceof Rango || v instanceof Deque))
+      throw errPy('TypeError', `'${tipoPy(v)}' object is not reversible`, linea);
+    const tipo = Array.isArray(v) ? 'list_reverseiterator' : v instanceof Deque ? '_collections._deque_reverse_iterator' : v instanceof Rango ? 'range_iterator' : 'reversed';
+    return new Iterador(tipo, elementos(v, linea).reverse());
+  },
+  *sorted(args, linea){ return ordenar(elementos(args[0], linea, 'sorted()'), linea); },
 };
 const GLOBALES = Object.create(null);
 for (const n of ACCIONES) GLOBALES[n] = new FuncPy(n, 'accion');
 for (const n of SENSORES) GLOBALES[n] = new FuncPy(n, 'sensor');
-for (const n in NATIVAS) GLOBALES[n] = new FuncPy(n, 'nativa', NATIVAS[n]);
+for (const n of DATOS) GLOBALES[n] = new FuncPy(n, 'sensor');
+for (const n in NATIVAS) GLOBALES[n] = new FuncPy(n, n === 'list' || n === 'set' || n === 'dict' ? 'clase' : 'nativa', NATIVAS[n]);
 
 function distancia(a, b){
   const d = Array.from({length:a.length + 1}, (_, i) => [i, ...Array(b.length).fill(0)]);
@@ -817,6 +1258,8 @@ function distancia(a, b){
 function buscar(nombre, linea, ctx){
   if (nombre in ctx.vars) return ctx.vars[nombre];
   if (nombre in GLOBALES) return GLOBALES[nombre];
+  if (nombre === 'deque' || nombre === 'collections') throw errPy('NameError', `name '${nombre}' is not defined`, linea,
+    'deque no viene incluida en Python: hay que importarla. Escribe al principio del programa: from collections import deque');
   const candidatos = [...Object.keys(ctx.vars), ...Object.keys(GLOBALES), 'True', 'False', 'None'];
   let mejor = null, dm = Infinity;
   for (const c of candidatos){
@@ -841,20 +1284,38 @@ function* evaluar(n, ctx){
     case 'const': return n.v;
     case 'nombre': {
       const v = buscar(n.n, n.linea, ctx);
-      if (v instanceof FuncPy && v.clase !== 'nativa' && !ctx.avisos.has(n.n)) ctx.avisos.set(n.n, n.linea);
+      if (v instanceof FuncPy && (v.clase === 'accion' || v.clase === 'sensor') && !ctx.avisos.has(n.n)) ctx.avisos.set(n.n, n.linea);
+      return v;
+    }
+    case 'lista': { const r = []; for (const e of n.elems) r.push(yield* evaluar(e, ctx)); return r; }
+    case 'conjunto': { const r = []; for (const e of n.elems) r.push(yield* evaluar(e, ctx)); return nuevoSet(r, n.linea); }
+    case 'dict': {
+      const d = new DictPy();
+      for (const [kn, vn] of n.pares){ const k = yield* evaluar(kn, ctx), v = yield* evaluar(vn, ctx); d.m.set(hashPy(k, n.linea), [k, v]); }
+      return d;
+    }
+    case 'indice': { const o = yield* evaluar(n.obj, ctx), i = yield* evaluar(n.idx, ctx); return yield* indexar(o, i, n.linea); }
+    case 'attr': {
+      const v = atributo(yield* evaluar(n.obj, ctx), n.nombre, n.linea), txt = textoDe(n);
+      if (v instanceof MetodoPy && !ctx.avisos.has(txt)) ctx.avisos.set(txt, n.linea);
       return v;
     }
     case 'llamada': {
-      const f = n.f.tipo === 'nombre' ? buscar(n.f.n, n.linea, ctx) : yield* evaluar(n.f, ctx);
+      const f = n.f.tipo === 'nombre' ? buscar(n.f.n, n.linea, ctx)
+        : n.f.tipo === 'attr' ? atributo(yield* evaluar(n.f.obj, ctx), n.f.nombre, n.f.linea) : yield* evaluar(n.f, ctx);
       const args = [];
       for (const a of n.args) args.push(yield* evaluar(a, ctx));
+      if (f instanceof MetodoPy) return yield* f.fn(args, n.linea);
       if (!(f instanceof FuncPy)) throw errPy('TypeError', `'${tipoPy(f)}' object is not callable`, n.linea,
         'Los paréntesis después de un nombre sirven para llamar a una función, y eso no es una función.');
       if (f.clase === 'accion' || f.clase === 'sensor'){
-        if (args.length) throw errPy('TypeError', `${f.nombre}() takes 0 positional arguments but ${args.length} ${args.length === 1 ? 'was' : 'were'} given`, n.linea,
-          f.clase === 'accion' ? `${f.nombre}() va con los paréntesis vacíos. Para repetirla, usa un for.` : `${f.nombre}() va con los paréntesis vacíos.`);
+        const pide = ARGUMENTOS[f.nombre] || [];
+        if (args.length < pide.length) throw errPy('TypeError', `${f.nombre}() missing ${pide.length - args.length} required positional argument: '${pide[args.length]}'`, n.linea,
+          f.nombre === 'pagar' ? 'Dentro de los paréntesis de pagar() va cuánto pagas: por ejemplo, pagar(total).' : `Dentro de los paréntesis de ${f.nombre}() va a quién: por ejemplo, ${f.nombre}(fila.popleft()).`);
+        if (args.length > pide.length) throw errPy('TypeError', `${f.nombre}() takes ${pide.length} positional argument${pide.length === 1 ? '' : 's'} but ${args.length} ${args.length === 1 ? 'was' : 'were'} given`, n.linea,
+          pide.length ? `${f.nombre}() lleva un solo valor dentro de los paréntesis.` : f.clase === 'accion' ? `${f.nombre}() va con los paréntesis vacíos. Para repetirla, usa un for.` : `${f.nombre}() va con los paréntesis vacíos.`);
         if (f.clase === 'sensor') return ctx.mundo.sensor(f.nombre);
-        yield {tipo:'accion', nombre:f.nombre, linea:n.linea, id:n.id};
+        yield {tipo:'accion', nombre:f.nombre, arg:args[0], linea:n.linea, id:n.id};
         return null;
       }
       return yield* f.fn(args, n.linea, ctx);
@@ -870,9 +1331,33 @@ function* evaluar(n, ctx){
     case 'bin': { const a = yield* evaluar(n.a, ctx), b = yield* evaluar(n.b, ctx); return binaria(n.o, a, b, n.linea); }
     case 'cmp': {
       let a = yield* evaluar(n.a, ctx);
-      for (const [o, bn] of n.ops){ const b = yield* evaluar(bn, ctx); if (!comparar(o, a, b, n.linea)) return false; a = b; }
+      for (const [o, bn] of n.ops){
+        const b = yield* evaluar(bn, ctx);
+        let si;
+        if (o === 'in' || o === 'not in') si = (yield* contiene(b, a, n.linea)) === (o === 'in');
+        else if (o === 'is' || o === 'is not') si = (a === b || (a == null && b == null)) === (o === 'is');
+        else si = comparar(o, a, b, n.linea);
+        if (!si) return false;
+        a = b;
+      }
       return true;
     }
+  }
+}
+// cómo está escrito un nombre o un método, para los avisos: ruta.pop
+function textoDe(n){ return n.tipo === 'nombre' ? n.n : n.tipo === 'attr' ? textoDe(n.obj) + '.' + n.nombre : '…'; }
+// Lo que da un for, uno por vuelta. Una lista se recorre por posición, como en Python: si crece mientras tanto, el for sigue.
+function* recorrer(it, linea){
+  if (Array.isArray(it)){ for (let i = 0; i < it.length; i++) yield it[i]; return; }
+  if (it instanceof Rango || typeof it === 'string'){ yield* it; return; }
+  const cambia = it instanceof Deque ? ['RuntimeError', 'deque mutated during iteration', () => it.a.length]
+    : it instanceof DictPy ? ['RuntimeError', 'dictionary changed size during iteration', () => it.size]
+    : it instanceof SetPy ? ['RuntimeError', 'Set changed size during iteration', () => it.size] : null;
+  const antes = cambia && cambia[2]();
+  for (const x of elementos(it, linea)){
+    yield x;
+    // como Python: al ir por el siguiente, se da cuenta de que cambió
+    if (cambia && cambia[2]() !== antes) throw errPy(cambia[0], cambia[1], linea, 'No se puede agregar ni sacar mientras la recorres con for. Usa un while, o recorre una copia.');
   }
 }
 function* ejecutarBloque(cuerpo, ctx){ for (const s of cuerpo) yield* ejecutarSentencia(s, ctx); }
@@ -882,15 +1367,57 @@ function* ejecutarSentencia(s, ctx){
     case 'expr': {
       yield {tipo:'linea', linea:s.linea};
       const v = yield* evaluar(s.expr, ctx);
-      if (s.expr.tipo === 'nombre' && v instanceof FuncPy) throw errPy('Ojo', `${s.expr.n} sin paréntesis no hace nada`, s.linea,
-        `Para que la orden se cumpla, escribe ${s.expr.n}() con los paréntesis. Sin ellos Python solo nombra la función, no la llama.`);
+      if ((s.expr.tipo === 'nombre' && v instanceof FuncPy) || (s.expr.tipo === 'attr' && v instanceof MetodoPy)){
+        const txt = textoDe(s.expr);
+        throw errPy('Ojo', `${txt} sin paréntesis no hace nada`, s.linea,
+          `Para que la orden se cumpla, escribe ${txt}() con los paréntesis. Sin ellos Python solo nombra la función, no la llama.`);
+      }
       return;
     }
     case 'asig': {
       yield {tipo:'linea', linea:s.linea};
       let v = yield* evaluar(s.expr, ctx);
-      if (s.op !== '=') v = binaria(s.op[0], buscar(s.nombre, s.linea, ctx), v, s.linea);
+      if (s.op !== '='){
+        const antes = buscar(s.nombre, s.linea, ctx);
+        // += en una lista o una deque la agranda ahí mismo, como en Python
+        if (s.op === '+=' && (Array.isArray(antes) || antes instanceof Deque)){
+          (Array.isArray(antes) ? antes : antes.a).push(...elementos(v, s.linea, '+='));
+          v = antes;
+        } else v = binaria(s.op[0], antes, v, s.linea);
+      }
       ctx.vars[s.nombre] = v;
+      return;
+    }
+    case 'asigIndice': {
+      yield {tipo:'linea', linea:s.linea};
+      const o = yield* evaluar(s.obj, ctx), i = yield* evaluar(s.idx, ctx);
+      let v = yield* evaluar(s.expr, ctx);
+      if (s.op !== '=') v = binaria(s.op[0], yield* indexar(o, i, s.linea), v, s.linea);
+      yield* guardarEn(o, i, v, s.linea);
+      return;
+    }
+    case 'asigAttr': {
+      yield {tipo:'linea', linea:s.linea};
+      const o = yield* evaluar(s.obj, ctx);
+      atributo(o, s.nombre, s.linea);
+      throw errPy('AttributeError', `'${tipoPy(o)}' object attribute '${s.nombre}' is read-only`, s.linea, 'Los métodos no se pueden cambiar: se llaman con paréntesis.');
+    }
+    case 'import': {
+      yield {tipo:'linea', linea:s.linea};
+      if (!(s.modulo in MODULOS)){
+        if (OTROS_MODULOS.includes(s.modulo)) throw errPy('Juego', `en este juego no hace falta importar ${s.modulo}`, s.linea, 'Lo único que hace falta importar es deque: from collections import deque');
+        throw errPy('ModuleNotFoundError', `No module named '${s.modulo}'`, s.linea,
+          distancia(s.modulo, 'collections') <= 3 ? '¿Quisiste decir collections? Se escribe: from collections import deque' : 'Lo único que hace falta importar es deque: from collections import deque');
+      }
+      const mod = MODULOS[s.modulo];
+      if (!s.nombres){ ctx.vars[s.modulo] = new ModuloPy(s.modulo, mod); return; }
+      for (const n of s.nombres){
+        if (n in mod){ ctx.vars[n] = mod[n]; continue; }
+        if (OTROS_DE_COLLECTIONS.includes(n)) throw errPy('Juego', `en este juego no hace falta ${n}`, s.linea, 'De collections, lo único que hace falta es deque.');
+        const cerca = Object.keys(mod).find(k => distancia(n, k) <= 2);
+        throw errPy('ImportError', `cannot import name '${n}' from '${s.modulo}'${cerca ? `. Did you mean: '${cerca}'?` : ''}`, s.linea,
+          cerca ? `¿Quisiste decir ${cerca}?` : 'De collections, lo único que hace falta es deque.');
+      }
       return;
     }
     case 'pass': yield {tipo:'linea', linea:s.linea}; return;
@@ -916,12 +1443,13 @@ function* ejecutarSentencia(s, ctx){
     case 'for': {
       yield {tipo:'linea', linea:s.linea};
       const it = yield* evaluar(s.iter, ctx);
-      if (!(it instanceof Rango) && typeof it !== 'string') throw errPy('TypeError', `'${tipoPy(it)}' object is not iterable`, s.linea,
-        typeof it === 'number' ? `Para repetir ${it} veces se escribe: for ${s.nombre} in range(${it}):` : 'Después de in va algo que se pueda recorrer, como range(5).');
+      const recorrible = it instanceof Rango || typeof it === 'string' || Array.isArray(it) || it instanceof Deque || it instanceof DictPy || it instanceof SetPy || it instanceof Iterador;
+      if (!recorrible) throw errPy('TypeError', `'${tipoPy(it)}' object is not iterable`, s.linea,
+        typeof it === 'number' ? `Para repetir ${it} veces se escribe: for ${s.nombre} in range(${it}):` : 'Después de in va algo que se pueda recorrer, como range(5) o una lista.');
       ctx.iter.push(0);
       try {
         let k = 0;
-        for (const x of it){
+        for (const x of recorrer(it, s.linea)){
           if (k > 0){ yield {tipo:'linea', linea:s.linea}; contarPaso(ctx, s.linea); }
           ctx.iter[ctx.iter.length - 1] = k++;
           ctx.vars[s.nombre] = x;
@@ -944,8 +1472,9 @@ class Mundo {
     this.h = p.mapa.length;
     this.w = Math.max(...p.mapa.map(f => f.length));
     this.celdas = []; this.paquetes = new Set(); this.controles = new Set(); this.semaforos = new Map();
+    this.nombres = new Map(); this.casas = new Map();   // de quién es cada paquete; quién vive en cada casa (D)
     this.meta = null; this.carro = null;
-    let iSem = 0;
+    let iSem = 0, iP = 0, iD = 0;
     for (let y = 0; y < this.h; y++){
       const fila = [];
       for (let x = 0; x < this.w; x++){
@@ -953,18 +1482,43 @@ class Mundo {
         if (c === '#' || c === '*'){ fila.push(c); continue; }
         fila.push(c === 'S' ? 'S' : '.');
         if (c === 'M') this.meta = {x, y};
-        else if (c === 'P') this.paquetes.add(k);
+        else if (c === 'P'){ this.paquetes.add(k); if (p.nombres) this.nombres.set(k, p.nombres[iP++]); }
         else if (c === 'C') this.controles.add(k);
+        else if (c === 'D'){ const d = p.casas[iD++]; this.casas.set(k, {nombre:d.nombre, pedido:d.pedido || 0, entregados:0}); }
         else if (c === 'S') this.semaforos.set(k, (p.semaforos || [])[iSem++] || {rojo:0, fijo:true});
         else if (c in DIR_CARRO) this.carro = {x, y, d:DIR_CARRO[c]};
       }
       this.celdas.push(fila);
     }
-    if (p.metaEnSalida) this.meta = {x:this.carro.x, y:this.carro.y};
+    this.salida = {x:this.carro.x, y:this.carro.y};
+    if (p.metaEnSalida) this.meta = {...this.salida};
     this.totalPaquetes = this.paquetes.size;
     this.totalControles = this.controles.size;
+    // un paquete por nombre: los repetidos se dejan
+    this.unoPorNombre = !!p.unoPorNombre; this.recogidos = new Set();
+    this.totalNombres = new Set(this.nombres.values()).size;
+    this.letrero = p.letrero ?? null;                  // lo que dice el letrero del garaje
+    this.peaje = !!p.peaje; this.pagado = false;       // en la meta se paga un peaje por paquete
+    this.fila = p.fila || null; this.subidos = 0;      // los pasajeros de la parada (la salida), en el orden en que llegaron
+    this.limite = p.limite || 0; this.tCosto = 0;      // tiempo límite; tiempos gastados en mover o revisar casilleros
+    // el GPS: los pasos de la ruta y dónde está el carrito antes de cada uno
+    this.ruta = p.ruta || null;
+    if (this.ruta){
+      let {x, y, d} = this.carro;
+      this.estadosRuta = [x + ',' + y + ',' + d];
+      for (const paso of this.ruta){
+        if (paso === 'avanzar'){ x += DIRS[d][0]; y += DIRS[d][1]; }
+        else d = (d + (paso === 'derecha' ? 1 : 3)) % 4;
+        this.estadosRuta.push(x + ',' + y + ',' + d);
+      }
+    }
     this.t = 0;
   }
+  costo(n){ this.t += n; this.tCosto += n; }
+  // lo que cambia en el mundo además del carrito, para reconocer un bucle infinito
+  firma(){ return [this.recogidos.size, this.pagado, this.subidos, [...this.casas.values()].map(c => c.entregados).join(',')].join('/'); }
+  pendientesEntrega(){ let n = 0; for (const c of this.casas.values()) n += c.pedido - c.entregados; return n; }
+  totalPedidos(){ let n = 0; for (const c of this.casas.values()) n += c.pedido; return n; }
   dentro(x, y){ return x >= 0 && y >= 0 && x < this.w && y < this.h; }
   libre(x, y){ return this.dentro(x, y) && this.celdas[y][x] !== '#' && this.celdas[y][x] !== '*'; }
   rojo(x, y, t = this.t){
@@ -988,9 +1542,21 @@ class Mundo {
       case 'hay_paquete': return this.paquetes.has(c.x + ',' + c.y);
       case 'semaforo_en_rojo': return this.rojo(...this.vecino(0));
       case 'en_la_meta': return this.enMeta();
+      // los que devuelven un valor
+      case 'letrero': return c.x === this.salida.x && c.y === this.salida.y ? this.letrero : null;
+      case 'gps': return this.ruta ? this.ruta.slice() : [];
+      case 'indicacion': {
+        if (!this.ruta) return null;
+        const i = this.estadosRuta.indexOf(c.x + ',' + c.y + ',' + c.d);
+        return i >= 0 && i < this.ruta.length ? this.ruta[i] : null;
+      }
+      case 'parada': return this.fila ? this.fila.slice() : [];
+      case 'paquete': { const k = c.x + ',' + c.y; return this.paquetes.has(k) ? this.nombres.get(k) ?? 'paquete' : null; }
+      case 'casa': return this.casas.get(c.x + ',' + c.y)?.nombre ?? null;
+      case 'pedidos': return nuevoDict([...this.casas.values()].filter(d => d.pedido > 0).map(d => [d.nombre, d.pedido]));
     }
   }
-  aplicar(n){
+  aplicar(n, arg){
     const c = this.carro;
     switch (n){
       case 'avanzar': {
@@ -1008,22 +1574,61 @@ class Mundo {
         this.t++;
         const k = c.x + ',' + c.y;
         if (!this.paquetes.has(k)) return {anim:{tipo:'nada'}, falla:'sinPaquete'};
+        const nombre = this.nombres.get(k);
+        if (this.unoPorNombre && this.recogidos.has(nombre)) return {anim:{tipo:'nada'}, falla:'repetido', info:{quien:nombre}};
         this.paquetes.delete(k);
+        if (nombre !== undefined) this.recogidos.add(nombre);
         return {anim:{tipo:'recoger', x:c.x, y:c.y}};
+      }
+      case 'entregar': {
+        this.t++;
+        const casa = this.casas.get(c.x + ',' + c.y);
+        if (!casa) return {anim:{tipo:'nada'}, falla:'sinCasa'};
+        if (casa.entregados >= casa.pedido) return {anim:{tipo:'nada'}, falla:'sinPedido', info:{quien:casa.nombre, pidio:casa.pedido}};
+        casa.entregados++;
+        return {anim:{tipo:'entregar', x:c.x, y:c.y}};
+      }
+      case 'pagar': {
+        this.t++;
+        if (!this.peaje || !this.enMeta()) return {anim:{tipo:'nada'}, falla:'sinPeaje'};
+        if (this.pagado) return {anim:{tipo:'nada'}, falla:'yaPago'};
+        const lleva = this.totalPaquetes - this.paquetes.size;
+        if (!igualPy(arg, lleva)) return {anim:{tipo:'nada'}, falla:'peajeMal', info:{pago:arg, lleva}};
+        this.pagado = true;
+        return {anim:{tipo:'pagar', x:c.x, y:c.y}};
+      }
+      case 'subir': {
+        this.t++;
+        if (!this.fila || c.x !== this.salida.x || c.y !== this.salida.y) return {anim:{tipo:'nada'}, falla:'sinParada'};
+        const i = typeof arg === 'string' ? this.fila.indexOf(arg) : -1;
+        if (i < 0) return {anim:{tipo:'nada'}, falla:'noEsta', info:{quien:arg}};
+        if (i < this.subidos) return {anim:{tipo:'nada'}, falla:'yaSubio', info:{quien:arg}};
+        if (i > this.subidos) return {anim:{tipo:'nada'}, falla:'colado', info:{quien:arg, debia:this.fila[this.subidos]}};
+        this.subidos++;
+        return {anim:{tipo:'subir', x:c.x, y:c.y}};
       }
     }
   }
 }
 // El mismo punto del programa, con las mismas variables y el carrito igual: desde ahí se repite para siempre.
 function claveEstado(ev, ctx, m){
-  return [ev.id, ctx.iter.join(','), JSON.stringify(ctx.vars), m.carro.x, m.carro.y, m.carro.d, m.fasesSemaforos(), m.paquetes.size, m.controles.size].join('|');
+  const vars = Object.keys(ctx.vars).map(k => k + '=' + reprPy(ctx.vars[k])).join(';');
+  return [ev.id, ctx.iter.join(','), vars, m.carro.x, m.carro.y, m.carro.d, m.fasesSemaforos(), m.paquetes.size, m.controles.size, m.firma()].join('|');
 }
 function resultadoFinal(m){
   if (!m.enMeta()) return {ok:false, falla:'noLlego'};
-  if (m.paquetes.size) return {ok:false, falla:'faltanPaquetes', n:m.paquetes.size};
+  if (m.unoPorNombre){
+    const n = m.totalNombres - m.recogidos.size;
+    if (n) return {ok:false, falla:'faltanNombres', n};
+  } else if (m.paquetes.size) return {ok:false, falla:'faltanPaquetes', n:m.paquetes.size};
   if (m.controles.size) return {ok:false, falla:'faltanControles', n:m.controles.size};
+  if (m.fila && m.subidos < m.fila.length) return {ok:false, falla:'faltanPasajeros', n:m.fila.length - m.subidos};
+  if (m.pendientesEntrega()) return {ok:false, falla:'faltanEntregas', n:m.pendientesEntrega()};
+  if (m.peaje && !m.pagado) return {ok:false, falla:'sinPagar'};
   return {ok:true};
 }
+// Si ya pasó el tiempo límite, la prueba se pierde ahí mismo.
+const tarde = (m, linea) => m.limite && m.t > m.limite ? {ok:false, falla:'tarde', linea, limite:m.limite, tCosto:m.tCosto} : null;
 // Sin animación: para saber cuánto tarda la solución y para revisar los niveles.
 function simular(ast, prueba, tope = 5000){
   const m = new Mundo(prueba), ctx = nuevoCtx(m), gen = ejecutarBloque(ast, ctx), vistos = new Set();
@@ -1032,12 +1637,19 @@ function simular(ast, prueba, tope = 5000){
       const r = gen.next();
       if (r.done) break;
       const ev = r.value;
+      if (ev.tipo === 'costo'){
+        m.costo(ev.n);
+        const tt = tarde(m, ev.linea); if (tt) return {...tt, t:m.t};
+        if (m.t > tope) return {ok:false, falla:'gasolina', linea:ev.linea, t:m.t};
+        continue;
+      }
       if (ev.tipo !== 'accion') continue;
       const k = claveEstado(ev, ctx, m);
       if (vistos.has(k)) return {ok:false, falla:'bucle', linea:ev.linea, t:m.t};
       vistos.add(k);
-      const res = m.aplicar(ev.nombre);
-      if (res.falla) return {ok:false, falla:res.falla, linea:ev.linea, t:m.t};
+      const res = m.aplicar(ev.nombre, ev.arg);
+      if (res.falla) return {ok:false, falla:res.falla, ...res.info, linea:ev.linea, t:m.t};
+      const tt = tarde(m, ev.linea); if (tt) return {...tt, t:m.t};
       if (m.t > tope) return {ok:false, falla:'gasolina', linea:ev.linea, t:m.t};
     }
   } catch (e){
@@ -1061,13 +1673,14 @@ function parques(g, rnd, n){
   }
 }
 // Calle recta de este a oeste: el carrito en x = 1 y la meta `largo` casillas más allá.
-function calleRecta(largo, ancho, semilla, {paquetes = [], semaforos = []} = {}){
+function calleRecta(largo, ancho, semilla, {paquetes = [], semaforos = [], casas = []} = {}){
   const g = lienzo(ancho, 5), y = 2;
   g[y][1] = '>';
   for (let x = 2; x <= largo + 1; x++) g[y][x] = '.';
   g[y][largo + 1] = 'M';
   paquetes.forEach(x => g[y][x] = 'P');
   semaforos.forEach(x => g[y][x] = 'S');
+  casas.forEach(x => g[y][x] = 'D');
   parques(g, azar(semilla), Math.round(ancho / 3));
   return aTexto(g);
 }
@@ -1152,6 +1765,47 @@ function laberinto(semilla, cw, ch){
   parques(g, rnd, 10);
   return {mapa:aTexto(g)};
 }
+// Una ciudad de cuadras de b × b edificios, con un cruce en cada esquina: sin el GPS no hay cómo saber por dónde ir.
+// La ruta nunca pasa dos veces por la misma esquina. `destino` es 'M' (la meta) o 'C' (un rombo, para volver al garaje).
+function cuadras(semilla, nx, ny, b, tramos, destino = 'M'){
+  const p = b + 1, w = nx * p + 3, h = ny * p + 3;
+  for (let n = 0; n < 4000; n++){
+    const rnd = azar(semilla * 7919 + n), g = lienzo(w, h);
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) if ((x - 1) % p === 0 || (y - 1) % p === 0) g[y][x] = '.';
+    let i = Math.floor(rnd() * (nx + 1)), j = Math.floor(rnd() * (ny + 1)), d = null, giros = 0, hechos = 0;
+    const visto = new Set([i + ',' + j]), cam = [[1 + i * p, 1 + j * p]];
+    for (let k = 0; k < tramos; k++, hechos++){
+      const opciones = [0, 1, 2, 3].filter(nd => {
+        const ni = i + DIRS[nd][0], nj = j + DIRS[nd][1];
+        return ni >= 0 && nj >= 0 && ni <= nx && nj <= ny && !visto.has(ni + ',' + nj);
+      });
+      if (!opciones.length) break;
+      const nd = d !== null && opciones.includes(d) && rnd() < 0.35 ? d : opciones[Math.floor(rnd() * opciones.length)];
+      if (d !== null && nd !== d) giros++;
+      // el último tramo puede terminar a mitad de cuadra
+      const largo = k === tramos - 1 ? 1 + Math.floor(rnd() * p) : p;
+      for (let s = 0; s < largo; s++){ const [x, y] = cam[cam.length - 1]; cam.push([x + DIRS[nd][0], y + DIRS[nd][1]]); }
+      i += DIRS[nd][0]; j += DIRS[nd][1]; visto.add(i + ',' + j); d = nd;
+    }
+    if (hechos < tramos || giros < Math.min(3, tramos - 1)) continue;
+    // a veces el carrito empieza mirando de lado, y la ruta empieza con un giro
+    const d0 = DIRS.findIndex(([dx, dy]) => dx === cam[1][0] - cam[0][0] && dy === cam[1][1] - cam[0][1]);
+    let mira = rnd() < 0.6 ? d0 : (d0 + (rnd() < 0.5 ? 1 : 3)) % 4;
+    const inicio = mira, ruta = [];
+    for (let k = 1; k < cam.length; k++){
+      const nd = DIRS.findIndex(([dx, dy]) => dx === cam[k][0] - cam[k - 1][0] && dy === cam[k][1] - cam[k - 1][1]);
+      if (nd !== mira){ ruta.push((nd - mira + 4) % 4 === 1 ? 'derecha' : 'izquierda'); mira = nd; }
+      ruta.push('avanzar');
+    }
+    const [x0, y0] = cam[0], [xf, yf] = cam[cam.length - 1];
+    g[y0][x0] = '>v<^'[inicio];
+    g[yf][xf] = destino;
+    return {mapa:aTexto(g), ruta, metaEnSalida:destino === 'C'};
+  }
+  throw new Error('No salió la ruta ' + semilla);
+}
+// Con un tiempo límite que deja un margen sobre lo que tarda la solución.
+const conLimite = (p, t, margen) => ({...p, limite:Math.ceil((t + margen) / 5) * 5});
 
 // ---------- niveles ----------
 // Cada nivel: sus pruebas (el mismo programa tiene que pasarlas todas), el código con que empieza,
@@ -1163,13 +1817,32 @@ const SECCIONES = {
   if:'if · elif · else',
   while:'while · repetir mientras',
   todo:'todo junto',
+  variables:'variables · guardar un valor',
+  listas:'listas y pilas',
+  colecciones:'colas, conjuntos y diccionarios',
 };
 const EP = {
   e001:'ep. 001 · ¿Qué es un algoritmo?',
   e002:'ep. 002 · Pseudocódigo y diagramas de flujo',
   e003:'ep. 003 · De pseudocódigo a Python',
+  e009:'ep. 009 · Listas en Python: lo que cuesta cada operación',
+  e010:'ep. 010 · Pilas: el botón de deshacer',
+  e011:'ep. 011 · Colas y deque: la fila del banco',
+  e012:'ep. 012 · Diccionarios y conjuntos',
   e026:'ep. 026 · Backtracking',
 };
+// Los nombres de los paquetes, los pasajeros y las casas: cada uno empieza con otra letra.
+const GENTE = ['Ana', 'Beto', 'Caro', 'Dani', 'Eli', 'Fer', 'Gabo', 'Hugo', 'Iris', 'Juan', 'Kati', 'Luis', 'Mar', 'Nico', 'Olga', 'Pao', 'Rosa', 'Sofi', 'Tato', 'Uri', 'Vale', 'Wen'];
+const deGente = (...iniciales) => iniciales.map(i => GENTE.find(g => g[0] === i));
+function filaDe(n, semilla){
+  const rnd = azar(semilla * 13 + 5), g = GENTE.slice();
+  for (let i = g.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [g[i], g[j]] = [g[j], g[i]]; }
+  return g.slice(0, n);
+}
+// Los pasos de las rutas del GPS, para las soluciones y lycan
+const SEGUIR_PASO = (s, giroDer = 'girar_derecha', giroIzq = 'girar_izquierda') =>
+  `${s}if paso == 'avanzar':\n${s}    avanzar()\n${s}elif paso == 'derecha':\n${s}    ${giroDer}()\n${s}else:\n${s}    ${giroIzq}()\n`;
+const VOLVER_PASO = s => SEGUIR_PASO(s, 'girar_izquierda', 'girar_derecha');
 const NIVELES = [
   {
     id:'primera-calle', sec:'secuencia', titulo:'Primera calle', curso:EP.e001,
@@ -1452,6 +2125,147 @@ const NIVELES = [
     pista:'La regla de la mano derecha: `if hay_camino_derecha():` gira a la derecha y avanza; `elif hay_camino():` avanza; `else:` gira a la izquierda.',
     aprende:'La regla de la mano derecha: si puedes doblar a la derecha, doblas; si no, sigues recto; si tampoco, giras a la izquierda. En un laberinto sin ciclos siempre llega a la salida. En el ep. 026 salimos de un laberinto de otra forma: con backtracking.',
   },
+  // ---------- variables y estructuras de datos: se ven en el panel de variables ----------
+  {
+    id:'el-letrero', sec:'variables', titulo:'Recuerda el letrero', curso:EP.e003, memoria:true,
+    objetivo:'El letrero del garaje dice hacia dónde doblar en la esquina, pero `letrero()` solo lo lee desde el garaje: lejos de ahí da `None`. Guarda lo que dice en una **variable**, `lado = letrero()`, y úsala al llegar a la esquina.',
+    lycan:'No hace falta guardarlo: cuando llegue a la esquina vuelvo a leer el letrero.',
+    lycanPor:'En la esquina, `letrero()` ya no lee nada: da `None`, y el carrito se va por el else aunque el letrero dijera izquierda. Lo que vas a necesitar después se guarda cuando lo tienes a mano: para eso es una variable.',
+    lycanCodigo:"while hay_camino():\n    avanzar()\nif letrero() == 'izquierda':\n    girar_izquierda()\nelse:\n    girar_derecha()\nwhile not en_la_meta():\n    avanzar()\n",
+    pruebas:() => [
+      {letrero:'izquierda', mapa:[
+        '#########',
+        '#M......#',
+        '####.##*#',
+        '#*##.####',
+        '####.####',
+        '####^####',
+        '#########']},
+      {letrero:'derecha', mapa:[
+        '#########',
+        '##*######',
+        '#......M#',
+        '####.####',
+        '####^####',
+        '#########']},
+      {letrero:'izquierda', mapa:[
+        '###########',
+        '#M........#',
+        '#####.###*#',
+        '#*###.#####',
+        '#####.#####',
+        '#####.##*##',
+        '#####.#####',
+        '#####^#####',
+        '###########']},
+    ],
+    inicial:'print(letrero())\nwhile hay_camino():\n    avanzar()\nprint(letrero())\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','while','if','else','not','hay_camino','en_la_meta','letrero','igual','s_izquierda','s_derecha'], metaLineas:9,
+    solucion:"lado = letrero()\nwhile hay_camino():\n    avanzar()\nif lado == 'izquierda':\n    girar_izquierda()\nelse:\n    girar_derecha()\nwhile not en_la_meta():\n    avanzar()\n",
+    pista:"En la primera línea, antes de moverte: `lado = letrero()`. En la esquina pregunta por la variable, no por el letrero: `if lado == 'izquierda':`.",
+    aprende:'Una variable es una caja con nombre: `lado = letrero()` guarda en `lado` lo que dijo el letrero, y ahí se queda hasta que le guardes otra cosa. El `=` no compara: guarda; es la flecha del pseudocódigo (ep. 002). Para comparar se usa `==`. La caja de `lado` se ve en «Variables», debajo del mapa.',
+  },
+  {
+    id:'el-peaje', sec:'variables', titulo:'El peaje', curso:EP.e001, memoria:true,
+    objetivo:'Recoge los paquetes de la calle. En la meta hay un peaje: se paga 1 por cada paquete, con `pagar(cantidad)`. ¿Cuántos llevas? Cuéntalos con una variable que empieza en 0 y crece de a uno con `+= 1` cada vez que recoges.',
+    lycan:'Escribo total = 0 dentro del while, junto al total += 1: así queda todo en el mismo lugar.',
+    lycanPor:'Lo que va dentro del while se repite en cada vuelta: el total vuelve a 0 en cada casilla y nunca pasa de 1. Un contador se pone en 0 una sola vez, antes del ciclo, como los `pasos = 0` del ep. 001.',
+    lycanCodigo:'while not en_la_meta():\n    total = 0\n    avanzar()\n    if hay_paquete():\n        recoger()\n        total += 1\npagar(total)\n',
+    pruebas:() => [
+      {mapa:calleRecta(8, 11, 91, {paquetes:[3, 5, 8]}), peaje:true},
+      {mapa:calleRecta(8, 11, 92, {paquetes:[2, 4, 6, 7]}), peaje:true},
+      {mapa:calleRecta(8, 11, 93, {paquetes:[5]}), peaje:true},
+    ],
+    inicial:'while not en_la_meta():\n    avanzar()\n    if hay_paquete():\n        recoger()\npagar(0)\n',
+    paleta:['avanzar','recoger','pagar','while','if','not','en_la_meta','hay_paquete','asignar','sumar_uno'], metaLineas:7,
+    solucion:'total = 0\nwhile not en_la_meta():\n    avanzar()\n    if hay_paquete():\n        recoger()\n        total += 1\npagar(total)\n',
+    pista:'Antes del while: `total = 0`. Debajo de `recoger()`, con la misma sangría: `total += 1`. Al final, sin sangría: `pagar(total)`.',
+    aprende:'Un contador es una variable que empieza en 0 y crece de a uno: `total += 1` es lo mismo que `total = total + 1`. Se pone en 0 una vez, antes del ciclo, y se suma adentro: es el `pasos += 1` del ep. 001.',
+  },
+  {
+    id:'el-gps', sec:'listas', titulo:'El GPS', curso:EP.e009, memoria:true, velocidad:2,
+    objetivo:"Una ciudad llena de cruces. `gps()` te da la ruta hasta la meta: una **lista** de pasos, como `['avanzar', 'derecha', 'avanzar']`. Guárdala en una variable y recórrela con `for paso in ruta:`, haciendo cada paso.",
+    pruebas:() => [cuadras(41, 4, 3, 2, 4), cuadras(42, 4, 3, 2, 5), cuadras(43, 4, 3, 2, 5)],
+    inicial:'ruta = gps()\nprint(ruta)\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','ruta_gps','for_paso','if_paso','elif_paso','else','s_avanzar','s_derecha','s_izquierda'], metaLineas:8,
+    solucion:'ruta = gps()\nfor paso in ruta:\n' + SEGUIR_PASO('    '),
+    pista:"Dentro de `for paso in ruta:`, pregunta qué paso es: `if paso == 'avanzar':` avanza; `elif paso == 'derecha':` gira a la derecha; `else:` gira a la izquierda.",
+    aprende:'Una lista guarda muchos valores en orden, entre corchetes y separados por comas. `for paso in ruta:` la recorre de principio a fin, y en cada vuelta `paso` vale el siguiente. Cada valor tiene su casillero, numerado desde 0: `ruta[0]` es el primero y `len(ruta)` dice cuántos hay.',
+  },
+  {
+    id:'ida-y-vuelta', sec:'listas', titulo:'Ida y vuelta', curso:EP.e010, memoria:true, velocidad:2,
+    objetivo:'Lleva el pedido a la casa del rombo y vuelve al garaje, donde empiezas. El GPS solo sabe ir: para volver, da media vuelta y saca los pasos de la ruta **del último al primero** con `ruta.pop()`, haciendo cada uno al revés.',
+    lycan:'Para volver, sigo la misma ruta desde el principio, con los giros al revés.',
+    lycanPor:'Para deshacer un camino se empieza por lo último que hiciste, como el Ctrl+Z del ep. 010: siempre se deshace lo último, nunca lo primero. Eso es una **pila**, y `ruta.pop()` saca justo el último paso.',
+    lycanCodigo:'ruta = gps()\nfor paso in ruta:\n' + SEGUIR_PASO('    ') + 'girar_derecha()\ngirar_derecha()\nfor paso in ruta:\n' + VOLVER_PASO('    '),
+    pruebas:() => [cuadras(51, 4, 3, 2, 3, 'C'), cuadras(52, 4, 3, 2, 4, 'C'), cuadras(53, 4, 3, 2, 5, 'C')],
+    inicial:'ruta = gps()\nfor paso in ruta:\n' + SEGUIR_PASO('    '),
+    paleta:['avanzar','girar_izquierda','girar_derecha','ruta_gps','for_paso','while_ruta','paso_pop','if_paso','elif_paso','else','s_avanzar','s_derecha','s_izquierda'], metaLineas:18,
+    solucion:'ruta = gps()\nfor paso in ruta:\n' + SEGUIR_PASO('    ') + 'girar_derecha()\ngirar_derecha()\nwhile ruta:\n    paso = ruta.pop()\n' + VOLVER_PASO('    '),
+    pista:"Al llegar al rombo, media vuelta: dos `girar_derecha()`. Después, `while ruta:` y adentro `paso = ruta.pop()`: si era `'avanzar'`, avanza; si era `'derecha'`, gira a la izquierda; si era `'izquierda'`, a la derecha.",
+    aprende:'Una pila es una lista en la que lo último que entra es lo primero que sale. `ruta.pop()` saca el último casillero y `append()` agrega al final; las dos son O(1). `while ruta:` se repite mientras la lista tenga algo: una lista vacía cuenta como False. Si haces `pop()` con la lista vacía, Python se detiene con `IndexError: pop from empty list`.',
+  },
+  {
+    id:'gps-de-voz', sec:'listas', titulo:'El GPS de voz', curso:EP.e009, memoria:true, velocidad:2,
+    objetivo:'Este GPS no te da la ruta: `indicacion()` dice solo el próximo paso, y `None` cuando llegaste al rombo. Apunta cada paso en una lista con `ruta.append(paso)` para poder volver al garaje. Ojo con el **tiempo límite**: en el carrito, mover casilleros de una lista también gasta tiempo.',
+    lycan:'Agregar al principio o al final cuesta lo mismo: con ruta.insert(0, paso) la lista ya queda al revés, y la recorro con un for.',
+    lycanPor:'Insertar en el casillero 0 obliga a correr todos los demás un lugar, y eso pasa con cada paso: con 20 pasos son 190 casilleros movidos, O(n²), como en el reto del ep. 009. `append()` agrega al final sin mover a nadie y `pop()` saca del final: las dos son O(1).',
+    lycanCodigo:'ruta = []\npaso = indicacion()\nwhile paso:\n' + SEGUIR_PASO('    ') + '    ruta.insert(0, paso)\n    paso = indicacion()\ngirar_derecha()\ngirar_derecha()\nfor paso in ruta:\n' + VOLVER_PASO('    '),
+    pruebas:() => [cuadras(61, 4, 3, 2, 2, 'C'), cuadras(62, 4, 3, 2, 4, 'C'), cuadras(63, 4, 3, 2, 6, 'C')].map(p => conLimite(p, 2 * p.ruta.length + 2, 10)),
+    inicial:'paso = indicacion()\nwhile paso:\n' + SEGUIR_PASO('    ') + '    paso = indicacion()\n',
+    paleta:['avanzar','girar_izquierda','girar_derecha','indicacion','while','while_ruta','lista','append','paso_pop','if_paso','elif_paso','else','s_avanzar','s_derecha','s_izquierda'], metaLineas:21,
+    solucion:'ruta = []\npaso = indicacion()\nwhile paso:\n' + SEGUIR_PASO('    ') + '    ruta.append(paso)\n    paso = indicacion()\ngirar_derecha()\ngirar_derecha()\nwhile ruta:\n    paso = ruta.pop()\n' + VOLVER_PASO('    '),
+    pista:'Antes del while, `ruta = []`. Después de hacer cada paso, `ruta.append(paso)`. Para volver, lo del nivel anterior: media vuelta, y `while ruta:` con `paso = ruta.pop()`.',
+    aprende:'`append()` y `pop()` trabajan en el final de la lista, donde no hay que mover a nadie: O(1). Insertar o sacar en el principio (`insert(0, x)`, `pop(0)`) corre todos los casilleros: O(n), y hecho n veces, O(n²). No basta con saber qué hace una operación: hay que saber cuánto cuesta (ep. 009).',
+  },
+  {
+    id:'bus-escolar', sec:'colecciones', titulo:'El bus escolar', curso:EP.e011, memoria:true,
+    objetivo:'Hoy el carrito hace de bus. `parada()` es la lista de los niños que esperan, en el orden en que llegaron. Súbelos con `subir(nombre)`, **primero el que llegó primero**, y llega a la escuela antes del timbre: el tiempo límite.',
+    lycan:'Una cola es una lista: agregas al final y sacas del principio con pop(0). ¿Qué tiene de especial?',
+    lycanPor:'Sacar del principio de una lista obliga a todos los que siguen a correrse un casillero (ep. 009): con 20 niños son 190 casilleros movidos solo para que avance la fila. `deque` saca del principio con `popleft()` sin mover a nadie: O(1).',
+    lycanCodigo:'fila = parada()\nwhile fila:\n    subir(fila.pop(0))\nwhile not en_la_meta():\n    avanzar()\n',
+    pruebas:() => [4, 10, 20].map((n, k) => conLimite({mapa:calleRecta(6, 10, 71 + k), fila:filaDe(n, k)}, n + 6, 8)),
+    inicial:'fila = parada()\nwhile fila:\n    subir(fila.pop(0))\nwhile not en_la_meta():\n    avanzar()\n',
+    paleta:['avanzar','subir','while','not','en_la_meta','import_deque','deque','popleft','parada'], metaLineas:6,
+    solucion:'from collections import deque\nfila = deque(parada())\nwhile fila:\n    subir(fila.popleft())\nwhile not en_la_meta():\n    avanzar()\n',
+    pista:'Arriba de todo, `from collections import deque`. Después, `fila = deque(parada())`, y saca al primero con `fila.popleft()`.',
+    aprende:'Una cola es una fila: el primero en entrar es el primero en salir (FIFO). La pila es al revés: con `fila.pop()` habría subido primero el último en llegar. Con una lista, sacar del principio es O(n); con `deque` y `popleft()`, O(1). La estructura correcta depende de dónde agregas y de dónde sacas.',
+  },
+  {
+    id:'repetidos', sec:'colecciones', titulo:'Paquetes repetidos', curso:EP.e012, memoria:true,
+    objetivo:'La tienda mandó paquetes repetidos. Recoge **uno solo de cada nombre**: `paquete()` dice de quién es el de tu casilla. Para recordar los nombres que ya tienes, usa un **conjunto**: `vistos = set()`, `vistos.add(p)` y `p not in vistos`. Hay tiempo límite.',
+    lycan:'El conjunto busca igual que la lista, uno por uno; solo que muy rápido.',
+    lycanPor:'Si buscara uno por uno, con más paquetes tardaría más, y no: un conjunto convierte el nombre en el número de su casillero y va directo, como el guardarropa del ep. 012. Con una lista, `p not in vistos` revisa los casilleros de a uno; con un `set`, cuesta lo mismo con 3 nombres que con un millón.',
+    lycanCodigo:'vistos = []\navanzar()\nwhile not en_la_meta():\n    p = paquete()\n    if p not in vistos:\n        recoger()\n        vistos.append(p)\n    avanzar()\n',
+    pruebas:() => [
+      ['ABACD', 6, 101], ['ABCADBEAFCB', 12, 102], ['ABCDBEAFGCAHDBEGA', 18, 103],
+    ].map(([ini, largo, semilla]) => {
+      const nombres = deGente(...ini);
+      return conLimite({mapa:calleRecta(largo, largo + 3, semilla, {paquetes:rango(2, largo + 1)}), nombres, unoPorNombre:true}, largo + new Set(nombres).size, 8);
+    }),
+    inicial:'avanzar()\nwhile not en_la_meta():\n    p = paquete()\n    print(p)\n    avanzar()\n',
+    paleta:['avanzar','recoger','while','if','not','en_la_meta','paquete','set','add','in','not_in'], metaLineas:8,
+    solucion:'vistos = set()\navanzar()\nwhile not en_la_meta():\n    p = paquete()\n    if p not in vistos:\n        recoger()\n        vistos.add(p)\n    avanzar()\n',
+    pista:'Antes del while, `vistos = set()`. En cada casilla: si `p not in vistos`, `recoger()` y `vistos.add(p)`.',
+    aprende:'Un conjunto (`set`) guarda valores sin repetir y responde `in` sin revisar uno por uno: convierte el valor en el número de su casillero, como una tabla hash. Por eso, si buscas mucho con `in`, usa un `set` o un `dict`, no una lista (ep. 012).',
+  },
+  {
+    id:'direcciones', sec:'colecciones', titulo:'Las direcciones', curso:EP.e012, memoria:true,
+    objetivo:"Reparte los pedidos de la calle. `pedidos()` es un **diccionario**: a cada nombre le corresponde cuántos paquetes pidió, como `{'Ana': 2, 'Caro': 1}`. En cada casa, `casa()` dice quién vive ahí. Entrega con `entregar()` lo que pidió cada uno, y nada a quien no pidió.",
+    lycan:'Si una casa no hizo pedido, pedidos[nombre] da 0 y no se entrega nada.',
+    lycanPor:'Pedir una clave que no está en el diccionario no da 0: Python se detiene con `KeyError`. Antes se pregunta con `if nombre in pendientes:`, que en un diccionario es O(1), o se usa `pendientes.get(nombre, 0)`, que da 0 si no está.',
+    lycanCodigo:'pendientes = pedidos()\nwhile not en_la_meta():\n    avanzar()\n    nombre = casa()\n    if nombre:\n        for i in range(pendientes[nombre]):\n            entregar()\n',
+    pruebas:() => [
+      {mapa:calleRecta(9, 12, 81, {casas:[3, 5, 7, 9]}), casas:[['Ana', 2], ['Beto', 1], ['Caro', 1], ['Dani', 3]]},
+      {mapa:calleRecta(9, 12, 82, {casas:[2, 4, 6, 8]}), casas:[['Eli', 1], ['Fer', 0], ['Gabo', 2], ['Hugo', 1]]},
+      {mapa:calleRecta(10, 13, 83, {casas:[2, 3, 5, 6, 8, 10]}), casas:[['Iris', 0], ['Juan', 2], ['Kati', 1], ['Luis', 0], ['Mar', 1], ['Nico', 3]]},
+    ].map(p => ({...p, casas:p.casas.map(([nombre, pedido]) => ({nombre, pedido}))})),
+    inicial:'pendientes = pedidos()\nprint(pendientes)\nwhile not en_la_meta():\n    avanzar()\n',
+    paleta:['avanzar','entregar','while','if','for','not','en_la_meta','casa','pedidos','in','lista'], metaLineas:7,
+    solucion:'pendientes = pedidos()\nwhile not en_la_meta():\n    avanzar()\n    nombre = casa()\n    if nombre in pendientes:\n        for i in range(pendientes[nombre]):\n            entregar()\n',
+    pista:'Después de cada `avanzar()`: `nombre = casa()`. Si `nombre in pendientes`, repite `entregar()` tantas veces como diga `pendientes[nombre]`, con un `for i in range(…):`.',
+    aprende:"Un diccionario guarda pares clave → valor: `pendientes['Ana']` va directo al valor de Ana, sin buscar. Si la clave no está, Python da `KeyError`; por eso se pregunta antes con `in`. Contar con un diccionario es la idea de la frecuencia de palabras del ep. 014.",
+  },
 ];
 NIVELES.forEach((n, i) => { n.num = i + 1; });
 
@@ -1496,6 +2310,14 @@ function hash(x, y, k = 0){
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
 }
 function rgba(hex, a){ const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; }
+// cada persona con su color, siempre el mismo
+const colorDe = nombre => NEON[(GENTE.indexOf(nombre) + 6) % NEON.length];
+function inicial(txt, x, y, alto, color){
+  if (alto < 6) return;
+  cx.fillStyle = color; cx.font = `700 ${Math.round(alto)}px "JetBrains Mono", Consolas, monospace`;
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillText(txt[0], x, y + alto * 0.05);
+}
 
 function medir(){
   if (!mundo || MODO_AR) return;
@@ -1617,16 +2439,69 @@ function dibujar(ahora){
     cx.beginPath(); cx.moveTo(px, py - r); cx.lineTo(px + r, py); cx.lineTo(px, py + r); cx.lineTo(px - r, py); cx.closePath(); cx.fill(); cx.stroke();
     cx.restore();
   }
-  // paquetes
+  // paquetes: los que tienen nombre van del color de su dueño, con la inicial
   for (const k of m.paquetes){
-    const [x, y] = k.split(',').map(Number);
-    const b = reducido ? 0 : Math.sin(ahora / 300 + x + y) * s * 0.03, l = s * 0.36;
-    const px = x * s + (s - l) / 2, py = y * s + (s - l) / 2 + b;
+    const [x, y] = k.split(',').map(Number), nombre = m.nombres.get(k);
+    const b = reducido ? 0 : Math.sin(ahora / 300 + x + y) * s * 0.03, l = s * (nombre ? 0.44 : 0.36);
+    const px = x * s + (s - l) / 2, py = y * s + (s - l) / 2 + b, col = nombre ? colorDe(nombre) : '#FFC94D';
     cx.save();
-    cx.shadowColor = '#FFC94D'; cx.shadowBlur = s * 0.3;
-    cx.fillStyle = '#FFC94D'; cx.fillRect(px, py, l, l);
+    cx.shadowColor = col; cx.shadowBlur = s * 0.3;
+    cx.fillStyle = col; cx.fillRect(px, py, l, l);
     cx.restore();
-    cx.fillStyle = '#B5781A'; cx.fillRect(px + l * 0.42, py, l * 0.16, l); cx.fillRect(px, py + l * 0.42, l, l * 0.16);
+    if (nombre) inicial(nombre, px + l / 2, py + l / 2, l * 0.7, '#04060C');
+    else { cx.fillStyle = '#B5781A'; cx.fillRect(px + l * 0.42, py, l * 0.16, l); cx.fillRect(px, py + l * 0.42, l, l * 0.16); }
+  }
+  // casas: un buzón con la inicial de quien vive ahí y, arriba, cuántos paquetes le faltan
+  for (const [k, c] of m.casas){
+    const [x, y] = k.split(',').map(Number), falta = c.pedido - c.entregados, lista = c.pedido && !falta;
+    const col = !c.pedido ? '#7584A8' : lista ? '#3CF0A5' : '#C4B1FF', w = s * 0.5, h = s * 0.34, x0 = x * s + (s - w) / 2, y0 = y * s + s * 0.08;
+    cx.save();
+    cx.shadowColor = col; cx.shadowBlur = c.pedido ? s * 0.25 : 0;
+    cx.fillStyle = rgba(col, 0.18); cx.strokeStyle = col; cx.lineWidth = Math.max(1.2, s * 0.04);
+    cx.beginPath(); cx.moveTo(x0, y0 + h * 0.35); cx.lineTo(x0 + w / 2, y0 - h * 0.25); cx.lineTo(x0 + w, y0 + h * 0.35); cx.lineTo(x0 + w, y0 + h); cx.lineTo(x0, y0 + h); cx.closePath();
+    cx.fill(); cx.stroke();
+    cx.restore();
+    inicial(c.nombre, x0 + w / 2, y0 + h * 0.62, h * 0.75, col);
+    if (falta > 0){
+      const r = s * 0.13, bx = x0 + w, by = y0;
+      cx.fillStyle = '#FF2E9A'; cx.beginPath(); cx.arc(bx, by, r, 0, 7); cx.fill();
+      inicial(String(falta), bx, by, r * 1.5, '#04060C');
+    }
+  }
+  // el letrero del garaje
+  if (m.letrero){
+    const sx = m.salida.x * s + s * 0.78, sy = m.salida.y * s + s * 0.2, w = s * 0.42, h = s * 0.3;
+    cx.fillStyle = '#45547A'; cx.fillRect(sx - s * 0.02, sy, s * 0.04, s * 0.5);
+    cx.save(); cx.shadowColor = '#FF2E9A'; cx.shadowBlur = s * 0.25;
+    cx.fillStyle = '#1A0716'; cx.strokeStyle = '#FF2E9A'; cx.lineWidth = Math.max(1, s * 0.035);
+    cx.beginPath(); cx.roundRect ? cx.roundRect(sx - w / 2, sy - h / 2, w, h, s * 0.05) : cx.rect(sx - w / 2, sy - h / 2, w, h); cx.fill(); cx.stroke();
+    cx.restore();
+    // una flecha hacia el lado que dice
+    const dir = m.letrero === 'izquierda' ? -1 : 1;
+    cx.strokeStyle = cx.fillStyle = '#FF66B5'; cx.lineWidth = Math.max(1.2, s * 0.04);
+    cx.beginPath(); cx.moveTo(sx - dir * w * 0.3, sy); cx.lineTo(sx + dir * w * 0.1, sy); cx.stroke();
+    cx.beginPath(); cx.moveTo(sx + dir * w * 0.34, sy); cx.lineTo(sx + dir * w * 0.06, sy - h * 0.32); cx.lineTo(sx + dir * w * 0.06, sy + h * 0.32); cx.closePath(); cx.fill();
+  }
+  // el peaje: una barrera en la meta que se levanta al pagar
+  if (m.peaje){
+    const bx = m.meta.x * s + s * 0.12, by = m.meta.y * s + s * 0.1, largo = s * 0.76;
+    cx.save();
+    cx.translate(bx, by); cx.rotate(m.pagado ? -Math.PI * 0.42 : 0);
+    for (let k = 0; k < 4; k++){ cx.fillStyle = k % 2 ? '#EEF3FC' : (m.pagado ? '#3CF0A5' : '#FF4D5E'); cx.fillRect(k * largo / 4, -s * 0.04, largo / 4, s * 0.08); }
+    cx.restore();
+    cx.fillStyle = '#FFC94D'; cx.beginPath(); cx.arc(bx, by, s * 0.06, 0, 7); cx.fill();
+  }
+  // la parada: los que esperan, en fila sobre la vereda; la fila avanza cuando sube el primero
+  if (m.fila){
+    const r = s * 0.11, porFila = Math.max(1, Math.floor((m.w - m.salida.x) * 3));
+    m.fila.slice(m.subidos).forEach((n, k) => {
+      const px = m.salida.x * s + s * 0.2 + (k % porFila) * s / 3, py = m.salida.y * s - s * 0.3 - Math.floor(k / porFila) * s * 0.36;
+      cx.fillStyle = colorDe(n); cx.beginPath(); cx.arc(px, py, r, 0, 7); cx.fill();
+      inicial(n, px, py, r * 1.5, '#04060C');
+    });
+    const px = m.salida.x * s + s * 0.08, py = m.salida.y * s + s * 0.08;
+    cx.fillStyle = '#22D3FF'; cx.fillRect(px, py, s * 0.18, s * 0.18);
+    inicial('P', px + s * 0.09, py + s * 0.09, s * 0.17, '#04060C');
   }
   // semáforos
   for (const [k] of m.semaforos){
@@ -1749,8 +2624,9 @@ async function animar(res, dur){
     vis.freno = 1;
     await interpolar(dur * 0.75, k => { vis.freno = 1 - k * 0.4; });
     vis.freno = 0;
-  } else if (a.tipo === 'recoger'){
-    chispas((a.x + 0.5) * T, (a.y + 0.5) * T, ['#FFC94D', '#EEF3FC', '#3CF0A5'], 22, 1.2);
+  } else if (a.tipo === 'recoger' || a.tipo === 'entregar' || a.tipo === 'pagar' || a.tipo === 'subir'){
+    const colores = a.tipo === 'entregar' ? ['#C4B1FF', '#EEF3FC', '#3CF0A5'] : a.tipo === 'subir' ? ['#22D3FF', '#EEF3FC', '#FF2E9A'] : ['#FFC94D', '#EEF3FC', '#3CF0A5'];
+    chispas((a.x + 0.5) * T, (a.y + 0.5) * T, colores, 22, 1.2);
     await esperarMs(dur * 0.6);
   } else {
     vis.flash = 0.6; vis.flashColor = '255,201,77';
@@ -1795,6 +2671,8 @@ const SON = {
   choque: () => { ruido(0.3, 0.22); tono(82, 0.28, 'square', 0.07, 0, 41); },
   rojo: () => { tono(220, 0.16, 'square', 0.05); tono(207.65, 0.24, 'square', 0.05, 0.17); },
   error: () => { tono(196, 0.12, 'triangle', 0.08); tono(146.83, 0.22, 'triangle', 0.08, 0.12); },
+  casillero: () => tono(1046.5, 0.025, 'square', 0.012),
+  subir: () => { tono(659.25, 0.08, 'triangle', 0.06); tono(880, 0.12, 'triangle', 0.06, 0.06); },
   prueba: () => [440, 523.25, 659.25].forEach((f, i) => tono(f, 0.13, 'triangle', 0.06, i * 0.07)),
   victoria: () => [440, 523.25, 659.25, 880, 659.25, 880].forEach((f, i) => tono(f, 0.18, 'triangle', 0.07, i * 0.1)),
 };
@@ -1802,7 +2680,7 @@ function sonar(res){
   if (res.falla === 'choque') return SON.choque();
   if (res.falla === 'rojo'){ SON.mover(); return SON.rojo(); }
   if (res.falla) return SON.error();
-  ({mover:SON.mover, girar:SON.girar, esperar:SON.esperar, recoger:SON.recoger})[res.anim.tipo]?.();
+  ({mover:SON.mover, girar:SON.girar, esperar:SON.esperar, recoger:SON.recoger, entregar:SON.recoger, pagar:SON.recoger, subir:SON.subir})[res.anim.tipo]?.();
 }
 
 // =================== editor ===================
@@ -1816,8 +2694,8 @@ function resaltar(linea){
       if (num) return `<span class="n">${num}</span>`;
       if (pal){
         if (CLASE_PALABRA.has(pal) || PALABRAS.has(pal)) return `<span class="k">${pal}</span>`;
-        if (ACCIONES.includes(pal) || SENSORES.includes(pal)) return `<span class="f">${pal}</span>`;
-        if (pal in NATIVAS) return `<span class="b">${pal}</span>`;
+        if (ACCIONES.includes(pal) || SENSORES.includes(pal) || DATOS.includes(pal)) return `<span class="f">${pal}</span>`;
+        if (pal in NATIVAS || pal === 'deque') return `<span class="b">${pal}</span>`;
         return escapar(pal);
       }
       return escapar(otro);
@@ -1930,6 +2808,37 @@ const PIEZAS = {
   hay_camino_derecha:{txt:'hay_camino_derecha()', modo:'expr', grupo:'pregunta'},
   hay_paquete:{txt:'hay_paquete()', modo:'expr', grupo:'pregunta'},
   semaforo_en_rojo:{txt:'semaforo_en_rojo()', modo:'expr', grupo:'pregunta'},
+  // variables y estructuras de datos
+  pagar:{txt:'pagar()', modo:'linea', grupo:'orden', atras:1},
+  subir:{txt:'subir()', modo:'linea', grupo:'orden', atras:1},
+  entregar:{txt:'entregar()', modo:'linea', grupo:'orden'},
+  for_paso:{txt:'for paso in ruta:', modo:'bloque', grupo:'estructura'},
+  if_paso:{txt:"if paso == '':", modo:'bloque', grupo:'estructura', etiqueta:"if paso == '…':", atras:2},
+  elif_paso:{txt:"elif paso == '':", modo:'rama', grupo:'estructura', etiqueta:"elif paso == '…':", atras:2},
+  while_ruta:{txt:'while ruta:', modo:'bloque', grupo:'estructura'},
+  igual:{txt:' == ', modo:'expr', grupo:'pregunta', etiqueta:'=='},
+  in:{txt:' in ', modo:'expr', grupo:'pregunta', etiqueta:'in'},
+  not_in:{txt:' not in ', modo:'expr', grupo:'pregunta', etiqueta:'not in'},
+  asignar:{txt:' = ', modo:'expr', grupo:'dato', etiqueta:'='},
+  sumar_uno:{txt:' += 1', modo:'expr', grupo:'dato', etiqueta:'+= 1'},
+  letrero:{txt:'letrero()', modo:'expr', grupo:'dato'},
+  s_avanzar:{txt:"'avanzar'", modo:'expr', grupo:'dato'},
+  s_derecha:{txt:"'derecha'", modo:'expr', grupo:'dato'},
+  s_izquierda:{txt:"'izquierda'", modo:'expr', grupo:'dato'},
+  ruta_gps:{txt:'ruta = gps()', modo:'linea', grupo:'dato'},
+  indicacion:{txt:'indicacion()', modo:'expr', grupo:'dato'},
+  lista:{txt:'[]', modo:'expr', grupo:'dato', etiqueta:'[ ]', atras:1},
+  append:{txt:'.append()', modo:'expr', grupo:'dato', atras:1},
+  paso_pop:{txt:'paso = ruta.pop()', modo:'linea', grupo:'dato'},
+  import_deque:{txt:'from collections import deque', modo:'linea', grupo:'dato'},
+  parada:{txt:'parada()', modo:'expr', grupo:'dato'},
+  deque:{txt:'deque()', modo:'expr', grupo:'dato', atras:1},
+  popleft:{txt:'.popleft()', modo:'expr', grupo:'dato'},
+  paquete:{txt:'paquete()', modo:'expr', grupo:'dato'},
+  set:{txt:'set()', modo:'expr', grupo:'dato'},
+  add:{txt:'.add()', modo:'expr', grupo:'dato', atras:1},
+  casa:{txt:'casa()', modo:'expr', grupo:'dato'},
+  pedidos:{txt:'pedidos()', modo:'expr', grupo:'dato'},
 };
 const AYUDA = {
   avanzar:'Avanza una casilla hacia donde mira el carrito.',
@@ -1949,8 +2858,38 @@ const AYUDA = {
   hay_camino_derecha:'True si hay calle a la derecha del carrito.',
   hay_paquete:'True si hay un paquete en la casilla del carrito.',
   semaforo_en_rojo:'True si el semáforo de adelante está en rojo.',
+  pagar:'Paga el peaje: dentro de los paréntesis va cuánto. Solo en la meta, y una vez.',
+  subir:'Sube al bus a quien pongas dentro de los paréntesis. Solo en la parada.',
+  entregar:'Entrega un paquete en la casa de la casilla del carrito.',
+  for_paso:'Recorre la lista ruta: en cada vuelta, paso vale el siguiente casillero.',
+  if_paso:"Compara el paso con un texto, como 'avanzar'. Los textos van entre comillas.",
+  elif_paso:'Otra comparación, por si la de arriba fue False.',
+  while_ruta:'Se repite mientras la lista tenga algo: una lista vacía cuenta como False.',
+  igual:'Compara: True si los dos lados valen lo mismo. Un solo = no compara, guarda.',
+  in:'True si el valor está en la lista, el conjunto o las claves del diccionario.',
+  not_in:'True si el valor no está.',
+  asignar:'Guarda en la variable de la izquierda el valor de la derecha: lado = letrero().',
+  sumar_uno:'Le suma 1 a la variable: total += 1 es lo mismo que total = total + 1.',
+  letrero:"Lo que dice el letrero ('izquierda' o 'derecha'), si el carrito está en el garaje. Lejos de ahí, None.",
+  s_avanzar:'El texto avanzar. Un texto va entre comillas.',
+  s_derecha:'El texto derecha.',
+  s_izquierda:'El texto izquierda.',
+  ruta_gps:'Guarda en la variable ruta la lista de pasos que da el GPS.',
+  indicacion:"El próximo paso de la ruta ('avanzar', 'derecha' o 'izquierda'), o None si ya llegaste.",
+  lista:'Una lista vacía, o el casillero de una lista o la clave de un diccionario: ruta[0], pedidos[nombre].',
+  append:'Agrega un valor al final de la lista, sin mover a nadie: O(1).',
+  paso_pop:'Saca el último casillero de la lista y lo guarda en paso: O(1).',
+  import_deque:'Trae deque, la fila con dos puntas. Va al principio del programa.',
+  parada:'La lista de los niños que esperan, en el orden en que llegaron.',
+  deque:'Una fila con dos puntas: deque(lista) la arma con lo que tenga la lista.',
+  popleft:'Saca el primero de una deque sin mover a los demás: O(1).',
+  paquete:'De quién es el paquete de la casilla del carrito, o None si no hay.',
+  set:'Un conjunto vacío: guarda valores sin repetir y responde in sin buscar uno por uno.',
+  add:'Agrega un valor al conjunto. Si ya estaba, no pasa nada.',
+  casa:'Quién vive en la casa de la casilla del carrito, o None si no hay casa.',
+  pedidos:"Un diccionario: cuántos paquetes pidió cada uno, como {'Ana': 2}.",
 };
-const GRUPOS = [['orden', 'Órdenes'], ['estructura', 'Estructuras'], ['pregunta', 'Preguntas']];
+const GRUPOS = [['orden', 'Órdenes'], ['estructura', 'Estructuras'], ['pregunta', 'Preguntas'], ['dato', 'Datos']];
 function pintarPaleta(){
   const niv = NIVELES[S.nivel];
   let html = '';
@@ -1990,7 +2929,7 @@ function sangriaDelIf(lineas, i, tope){
 }
 function insertarPieza(p){
   const v = ta.value, pos = ta.selectionStart;
-  if (p.modo === 'expr') return reemplazar(pos, ta.selectionEnd, p.txt, pos + p.txt.length);
+  if (p.modo === 'expr') return reemplazar(pos, ta.selectionEnd, p.txt, pos + p.txt.length - (p.atras || 0));
   const lineas = v.split('\n');
   let i = v.slice(0, pos).split('\n').length - 1;
   const inicioDe = k => lineas.slice(0, k).reduce((s, l) => s + l.length + 1, 0);
@@ -2006,7 +2945,9 @@ function insertarPieza(p){
   let a, b, txt;
   if (vacia){ a = inicioDe(i); b = a + lineas[i].length; txt = cabeza + cuerpo; }
   else { a = b = inicioDe(i) + lineas[i].length; txt = '\n' + cabeza + cuerpo; }
-  const cursor = p.dentro ? a + txt.indexOf(cabeza) + cabeza.length - 1 : a + txt.length;
+  // el cursor queda donde falta escribir: antes de los dos puntos, dentro de las comillas o de los paréntesis
+  const atras = p.atras ?? (p.dentro ? 1 : null);
+  const cursor = atras !== null ? a + txt.indexOf(cabeza) + cabeza.length - atras : a + txt.length;
   reemplazar(a, b, txt, cursor);
 }
 
@@ -2040,8 +2981,39 @@ function seleccionarPrueba(i){
   pruebaSel = i;
   mundo = new Mundo(pruebas[i]);
   mundo.todosControles = new Set(mundo.controles);
-  reiniciarVista(); medir(); pintarPruebas(); actualizarEstado(); ocultarAviso();
+  ctxVista = null; vistaCosto = null;
+  reiniciarVista(); medir(); pintarPruebas(); actualizarEstado(); pintarMemoria(); ocultarAviso();
   window.alCargarMundo?.(mundo);
+}
+
+// ---------- variables: lo que tiene guardado el programa, como cajas con nombre ----------
+let ctxVista = null, vistaCosto = null;   // el programa que se ve; el casillero que se está moviendo o revisando
+const reprCorto = x => { const r = reprPy(x); return r.length > 40 ? r.slice(0, 39) + '…' : r; };
+function pintarMemoria(){
+  const niv = NIVELES[S.nivel], el = $('#memoria');
+  el.hidden = !niv.memoria;
+  if (!niv.memoria) return;
+  const c = mundo ? mundo.tCosto : 0;
+  $('#memoria-costo').textContent = c ? `${c} ${c === 1 ? 'casillero movido o revisado' : 'casilleros movidos o revisados'}` : '';
+  const vars = ctxVista ? Object.entries(ctxVista.vars).filter(([, v]) => !(v instanceof FuncPy || v instanceof ModuloPy || v instanceof MetodoPy)) : [];
+  $('#vars').innerHTML = vars.length ? vars.map(([k, v]) => cajaVar(k, v)).join('')
+    : '<p class="vacia">Cuando tu programa guarde algo con =, aquí aparece su variable: una caja con nombre.</p>';
+}
+function cajaVar(nombre, v){
+  const marca = (obj, i) => vistaCosto && vistaCosto.obj === obj && vistaCosto.i === i ? (vistaCosto.op === 'mover' ? ' mueve' : ' busca') : '';
+  let tipo = tipoPy(v), cuerpo;
+  if (Array.isArray(v) || v instanceof Deque){
+    const a = Array.isArray(v) ? v : v.a;
+    tipo = `${Array.isArray(v) ? 'list' : 'deque'} · ${a.length}`;
+    cuerpo = a.length ? a.map((x, i) => `<span class="casilla${marca(v, i)}"><i>${i}</i>${escapar(reprCorto(x))}</span>`).join('') : '<span class="nada">vacía</span>';
+  } else if (v instanceof DictPy){
+    tipo = `dict · ${v.size}`;
+    cuerpo = v.size ? [...v.m.values()].map(([k, x]) => `<span class="par"><span class="casilla clave">${escapar(reprCorto(k))}</span>→<span class="casilla">${escapar(reprCorto(x))}</span></span>`).join('') : '<span class="nada">vacío</span>';
+  } else if (v instanceof SetPy){
+    tipo = `set · ${v.size}`;
+    cuerpo = v.size ? [...v.m.values()].map(x => `<span class="casilla">${escapar(reprCorto(x))}</span>`).join('') : '<span class="nada">vacío</span>';
+  } else cuerpo = `<span class="casilla caja">${escapar(reprCorto(v))}</span>`;
+  return `<div class="var"><span class="var-n">${escapar(nombre)}<small>${escapar(tipo)}</small></span><div class="casillas">${cuerpo}</div></div>`;
 }
 function pintarPruebas(){
   const cont = $('#pruebas');
@@ -2054,11 +3026,15 @@ $('#pruebas').addEventListener('click', e => {
   seleccionarPrueba(+b.dataset.i);
 });
 function actualizarEstado(){
-  const m = mundo, partes = [`tiempo <b>${m.t}</b>`];
-  if (m.totalPaquetes) partes.push(`paquetes <b>${m.totalPaquetes - m.paquetes.size}/${m.totalPaquetes}</b>`);
+  const m = mundo, partes = [m.limite ? `tiempo <b>${m.t} de ${m.limite}</b>` : `tiempo <b>${m.t}</b>`];
+  if (m.unoPorNombre) partes.push(`nombres <b>${m.recogidos.size}/${m.totalNombres}</b>`);
+  else if (m.totalPaquetes) partes.push(`paquetes <b>${m.totalPaquetes - m.paquetes.size}/${m.totalPaquetes}</b>`);
   if (m.totalControles) partes.push(`rombos <b>${m.totalControles - m.controles.size}/${m.totalControles}</b>`);
   if (m.semaforos.size) partes.push(`semáforos <b>${m.semaforos.size}</b>`);
-  $('#estado').innerHTML = partes.map(p => `<span>${p}</span>`).join('');
+  if (m.fila) partes.push(`a bordo <b>${m.subidos}/${m.fila.length}</b>`);
+  if (m.casas.size) partes.push(`entregas <b>${m.totalPedidos() - m.pendientesEntrega()}/${m.totalPedidos()}</b>`);
+  if (m.peaje) partes.push(`peaje <b>${m.pagado ? 'pagado' : 'por pagar'}</b>`);
+  $('#estado').innerHTML = partes.map((p, i) => `<span${i === 0 && m.limite && m.t > m.limite * 0.8 ? ' class="apurado"' : ''}>${p}</span>`).join('');
   const d = ['este', 'sur', 'oeste', 'norte'][m.carro.d];
   cv.setAttribute('aria-label', `Mapa: el carrito mira hacia el ${d}; la meta está ${m.meta.x - m.carro.x} casillas a lo ancho y ${m.meta.y - m.carro.y} a lo alto.`);
 }
@@ -2076,8 +3052,8 @@ function mostrarErrorPy(e){
   pintarEditor();
   if (lineaError) mostrarLinea(lineaError);
   const texto = (ta.value.split('\n')[e.linea - 1] || '').trim();
-  if (e.tipo === 'Ojo' || e.tipo === 'BucleInfinito'){
-    escribir(e.tipo === 'Ojo' ? `Ojo, línea ${e.linea}: ${e.message}.` : `Bucle infinito: ${e.message}.`, 'mal');
+  if (e.tipo === 'Ojo' || e.tipo === 'Juego' || e.tipo === 'BucleInfinito'){
+    escribir(e.tipo === 'BucleInfinito' ? `Bucle infinito: ${e.message}.` : `Ojo, línea ${e.linea}: ${e.message}.`, 'mal');
   } else if (e.tipo === 'SyntaxError' || e.tipo === 'IndentationError'){
     escribir(`  File "programa.py", line ${e.linea}\n    ${texto}`, 'tb');
     escribir(`${e.tipo}: ${e.message}`, 'mal');
@@ -2086,7 +3062,7 @@ function mostrarErrorPy(e){
     escribir(`${e.tipo}: ${e.message}`, 'mal');
   }
   if (e.ayuda) escribir(e.ayuda, 'exp');
-  aviso(e.tipo === 'Ojo' ? 'Ojo con los paréntesis' : e.tipo === 'BucleInfinito' ? 'Bucle infinito' : `${e.tipo} en la línea ${e.linea}`, 'mal');
+  aviso(e.tipo === 'Ojo' ? 'Ojo con los paréntesis' : e.tipo === 'Juego' ? 'Eso no hace falta aquí' : e.tipo === 'BucleInfinito' ? 'Bucle infinito' : `${e.tipo} en la línea ${e.linea}`, 'mal');
   SON.error();
 }
 const FALLAS = {
@@ -2098,6 +3074,22 @@ const FALLAS = {
   faltanControles: r => [`Te ${r.n === 1 ? 'faltó 1 rombo' : `faltaron ${r.n} rombos`}`, `Volviste al garaje, pero no pasaste por ${r.n === 1 ? '1 rombo' : `${r.n} rombos`}.`, 'Tienes que dar la vuelta completa a la manzana.'],
   bucle: r => ['Bucle infinito', `En la línea ${r.linea} el carrito volvió a estar exactamente igual que antes: en la misma casilla, mirando hacia el mismo lado y en el mismo punto de tu programa.`, 'Desde ahí va a repetir lo mismo para siempre. Revisa la condición de tu while: ¿alguna vez deja de cumplirse?'],
   gasolina: r => ['Se acabó la gasolina', `El carrito lleva ${mundo.t} movimientos y tu programa no termina.`, 'Seguramente es un bucle infinito: revisa la condición de tu while.'],
+  tarde: r => ['Se hizo tarde', `El tiempo límite de esta prueba es ${r.limite}, y en la línea ${r.linea} tu programa ya iba en ${mundo.t}.`,
+    r.tCosto ? `${r.tCosto} de esos tiempos se fueron en mover o revisar casilleros de una lista, uno por uno (míralos en «Variables»). Busca una operación que no tenga que hacerlo.` : 'Sobran movimientos: busca un camino más corto.'],
+  repetido: r => ['Paquete repetido', `En la línea ${r.linea} recogiste otro paquete de ${r.quien}, y ya tenías uno.`, 'Recuerda los nombres que ya recogiste y pregunta antes de recoger.'],
+  faltanNombres: r => [`Te ${r.n === 1 ? 'faltó 1 nombre' : `faltaron ${r.n} nombres`}`, `Llegaste a la meta sin ningún paquete de ${r.n === 1 ? '1 nombre' : `${r.n} nombres`}.`, 'Hay que llevarse un paquete de cada nombre: el primero que aparezca.'],
+  sinPeaje: r => ['Aquí no hay peaje', `En la línea ${r.linea} llamaste a pagar(), pero el carrito no está en el peaje.`, 'El peaje está en la meta: paga al llegar, después del while y sin sangría.'],
+  yaPago: r => ['Ya pagaste', `En la línea ${r.linea} quisiste pagar otra vez.`, 'El peaje se paga una sola vez, al llegar.'],
+  peajeMal: r => [`Pagaste ${strPy(r.pago)} y eran ${r.lleva}`, `En la línea ${r.linea} pagaste ${reprPy(r.pago)}, pero llevas ${r.lleva} ${r.lleva === 1 ? 'paquete' : 'paquetes'}.`, 'Cuenta los paquetes en una variable mientras los recoges, y paga con esa variable.'],
+  sinPagar: () => ['No pagaste el peaje', 'Llegaste a la meta, pero no pagaste el peaje.', 'Al final, paga con pagar(…).'],
+  sinParada: r => ['El bus no está en la parada', `En la línea ${r.linea} quisiste subir a alguien lejos de la parada.`, 'Sube a todos antes de arrancar.'],
+  noEsta: r => ['No está en la parada', `En la línea ${r.linea} quisiste subir a ${reprPy(r.quien)}, que no está en la fila.`, 'Los nombres salen de parada(), en el orden en que llegaron.'],
+  yaSubio: r => [`${r.quien} ya subió`, `En la línea ${r.linea} quisiste subir otra vez a ${r.quien}.`, 'Después de subir a alguien, sácalo de la fila para que el siguiente quede primero.'],
+  colado: r => [`¡${r.quien} se coló!`, `En la línea ${r.linea} subió ${r.quien}, pero ${r.debia} llegó antes.`, 'En una fila sube primero el que llegó primero: se saca del principio de la fila, no del final.'],
+  faltanPasajeros: r => [`${r.n === 1 ? 'Quedó 1 niño' : `Quedaron ${r.n} niños`} en la parada`, `Llegaste a la escuela, pero ${r.n === 1 ? 'quedó 1 niño' : `quedaron ${r.n} niños`} sin subir.`, 'Sube a todos los de la fila antes de arrancar.'],
+  sinCasa: r => ['Aquí no vive nadie', `En la línea ${r.linea} llamaste a entregar(), pero en esa casilla no hay ninguna casa.`, 'Entrega solo donde casa() diga un nombre.'],
+  sinPedido: r => [`${r.quien} no pidió eso`, `En la línea ${r.linea} le entregaste un paquete a ${r.quien}, que ${r.pidio ? `pidió ${r.pidio === 1 ? 'solo 1' : `solo ${r.pidio}`}` : 'no hizo ningún pedido'}.`, 'Entrega a cada casa lo que dice el diccionario: ni más ni menos.'],
+  faltanEntregas: r => [r.n === 1 ? 'Faltó 1 entrega' : `Faltaron ${r.n} entregas`, `Llegaste al final de la calle, pero ${r.n === 1 ? 'quedó 1 paquete' : `quedaron ${r.n} paquetes`} sin entregar.`, 'En cada casa, entrega tantos paquetes como diga su pedido.'],
 };
 function informarFalla(r, i){
   if (MODO_AR) plegar(false);
@@ -2108,7 +3100,7 @@ function informarFalla(r, i){
     escribir(`Prueba ${i + 1} ✗ ${largo}`, 'mal');
     escribir(exp, 'exp');
     aviso(corto, 'mal');
-    if (r.falla === 'noLlego' || r.falla.startsWith('faltan') || r.falla === 'bucle' || r.falla === 'gasolina') SON.error();
+    if (r.falla.startsWith('faltan') || ['noLlego', 'bucle', 'gasolina', 'tarde', 'sinPagar'].includes(r.falla)) SON.error();
   }
   for (const [nombre, linea] of r.avisos || []){
     escribir(`Ojo: en la línea ${linea} escribiste ${nombre} sin paréntesis. Así no se pregunta nada: Python ve la función misma y en un if o un while la toma como True. Escribe ${nombre}().`, 'ojo');
@@ -2178,7 +3170,8 @@ async function correr(ast, indices, paso){
 }
 async function correrPrueba(ast, i){
   const m = mundo, ctx = nuevoCtx(m), gen = ejecutarBloque(ast, ctx), vistos = new Set();
-  const con = r => ({...r, avisos:[...ctx.avisos]});
+  const con = r => { pintarMemoria(); return {...r, avisos:[...ctx.avisos]}; };
+  ctxVista = ctx; pintarMemoria();
   for (;;){
     if (corrida.cancelada) return {cancelada:true};
     let r;
@@ -2187,20 +3180,35 @@ async function correrPrueba(ast, i){
     if (r.done) break;
     const ev = r.value;
     if (ev.tipo === 'linea'){
-      marcarLinea(ev.linea);
+      marcarLinea(ev.linea); pintarMemoria();
       if (corrida.paso) await esperarClic(); else await esperarMs(T_LINEA());
     } else if (ev.tipo === 'print'){
       escribir(ev.texto, 'salida');
+    } else if (ev.tipo === 'costo'){
+      // los casilleros que la lista tiene que mover o revisar, uno por uno: cada uno gasta un tiempo
+      marcarLinea(ev.linea);
+      for (const k of ev.indices){
+        if (corrida.cancelada) return {cancelada:true};
+        m.costo(1);
+        vistaCosto = {obj:ev.obj, i:k, op:ev.op};
+        pintarMemoria(); actualizarEstado(); SON.casillero();
+        await esperarMs(Math.max(12, T_ACCION() / 5));
+        const tt = tarde(m, ev.linea);
+        if (tt){ vistaCosto = null; return con(tt); }
+        if (m.t > topes[i]){ vistaCosto = null; return con({ok:false, falla:'gasolina', linea:ev.linea}); }
+      }
+      vistaCosto = null; pintarMemoria();
     } else if (ev.tipo === 'accion'){
       marcarLinea(ev.linea);
       const k = claveEstado(ev, ctx, m);
       if (vistos.has(k)) return con({ok:false, falla:'bucle', linea:ev.linea});
       vistos.add(k);
-      const res = m.aplicar(ev.nombre);
+      const res = m.aplicar(ev.nombre, ev.arg);
       sonar(res);
-      actualizarEstado();
+      actualizarEstado(); pintarMemoria();
       await animar(res, T_ACCION());
-      if (res.falla) return con({ok:false, falla:res.falla, linea:ev.linea});
+      if (res.falla) return con({ok:false, falla:res.falla, ...res.info, linea:ev.linea});
+      const tt = tarde(m, ev.linea); if (tt) return con(tt);
       if (m.t > topes[i]) return con({ok:false, falla:'gasolina', linea:ev.linea});
     }
   }
@@ -2667,7 +3675,8 @@ function calleDe(m, x, y){
 }
 
 function construir(m){
-  const nueva = m.celdas.map(f => f.join('')).join('/') + '|' + [...m.paquetes, ...m.controles].join(' ') + '|' + m.meta.x + ',' + m.meta.y;
+  const nueva = m.celdas.map(f => f.join('')).join('/') + '|' + [...m.paquetes, ...m.controles].join(' ') + '|' + m.meta.x + ',' + m.meta.y
+    + '|' + [...m.nombres.values(), ...[...m.casas.values()].map(c => c.nombre), ...(m.fila || []), m.letrero, m.peaje].join(' ');
   if (ciudad && nueva === firma) return;
   firma = nueva;
   if (ciudad){ ancla.remove(ciudad); liberar(ciudad); }
@@ -2798,6 +3807,46 @@ function construir(m){
     semaforos.push({x, y, barra:barra.color, rojo:luces.luz_roja, verde:luces.luz_verde});
   }
 
+  // variables y estructuras de datos: los paquetes con nombre van del color de su dueño
+  for (const [k, p] of paquetes){
+    const nombre = m.nombres.get(k);
+    if (!nombre) continue;
+    p.traverse(o => { if (o.isMesh){ o.material = o.material.clone(); o.material.color.set(colorDe(nombre)); } });
+  }
+  // las casas: un buzón al borde de la calle, que se pone verde cuando ya recibió todo
+  const casas = new Map();
+  for (const [k, c] of m.casas){
+    const [x, y] = k.split(',').map(Number), [px, pz] = pos(x, y);
+    const mat = lambert(0xC4B1FF, {emissive:0xC4B1FF, emissiveIntensity:0.6});
+    malla(new THREE.CylinderGeometry(s * 0.02, s * 0.02, s * 0.3, 6), lambert(0x45547A), px, s * 0.15, pz - s * 0.4);
+    casas.set(k, {mat, caja:malla(new THREE.BoxGeometry(s * 0.22, s * 0.14, s * 0.14), mat, px, s * 0.34, pz - s * 0.4)});
+  }
+  // la parada: un poste cian, y los niños en fila sobre la vereda
+  const ninos = [];
+  if (m.fila){
+    const [px, pz] = pos(m.salida.x, m.salida.y);
+    malla(new THREE.CylinderGeometry(s * 0.025, s * 0.025, s * 0.6, 6), basico(0x22D3FF), px - s * 0.4, s * 0.3, pz - s * 0.4);
+    const geo = new THREE.CapsuleGeometry(s * 0.06, s * 0.1, 2, 8);
+    m.fila.forEach(n => ninos.push(malla(geo, lambert(colorDe(n), {emissive:colorDe(n), emissiveIntensity:0.35}), 0, s * 0.12, 0)));
+  }
+  // el letrero del garaje y la barrera del peaje
+  if (m.letrero){
+    const [px, pz] = pos(m.salida.x, m.salida.y);
+    malla(new THREE.CylinderGeometry(s * 0.02, s * 0.02, s * 0.45, 6), lambert(0x45547A), px + s * 0.4, s * 0.22, pz + s * 0.4);
+    const flecha = new THREE.Mesh(new THREE.ConeGeometry(s * 0.1, s * 0.22, 3).rotateZ(m.letrero === 'izquierda' ? Math.PI / 2 : -Math.PI / 2), basico(0xFF2E9A));
+    flecha.position.set(px + s * 0.4, s * 0.5, pz + s * 0.4);
+    ciudad.add(flecha);
+  }
+  let barrera = null;
+  if (m.peaje){
+    barrera = new THREE.Group();
+    barrera.position.set(mx - s * 0.4, s * 0.25, mz - s * 0.4);
+    const brazo = new THREE.Mesh(new THREE.BoxGeometry(s * 0.8, s * 0.06, s * 0.06), basico(0xFF4D5E));
+    brazo.position.x = s * 0.4;
+    barrera.add(brazo);
+    ciudad.add(barrera);
+  }
+
   // el carrito: el de Blender (cian y magenta, con orejas de lobo), un brillo cian debajo y una flecha encima
   const carro = new THREE.Group();
   const modeloCarro = copia('carro', 0, sobre * 0.5, 0, 0, carro);
@@ -2820,7 +3869,7 @@ function construir(m){
   carro.add(baliza);
   ciudad.add(carro);
 
-  din = {s, pos, carro, baliza, pintura, paquetes, controles, semaforos, haz};
+  din = {s, pos, carro, baliza, pintura, paquetes, controles, semaforos, haz, casas, ninos, barrera};
 }
 
 function animarCiudad(t){
@@ -2855,6 +3904,20 @@ function animarCiudad(t){
     if (sm.rojo) sm.rojo.emissiveIntensity = sm.verde.emissiveIntensity = 2.2;
   }
   din.haz.opacity = 0.08 + 0.07 * (Math.sin(t / 400) + 1) / 2;
+  for (const [k, c] of din.casas){
+    const casa = mundo.casas.get(k), color = !casa.pedido ? 0x7584A8 : casa.entregados >= casa.pedido ? 0x3CF0A5 : 0xC4B1FF;
+    c.mat.color.setHex(color); c.mat.emissive.setHex(color);
+  }
+  // la fila avanza: el primero que espera queda junto a la parada
+  if (mundo.fila){
+    const [px, pz] = din.pos(mundo.salida.x, mundo.salida.y);
+    din.ninos.forEach((o, i) => {
+      const k = i - mundo.subidos;
+      o.visible = k >= 0;
+      o.position.x = px - s * 0.3 + (k % 6) * s * 0.3; o.position.z = pz - s * 0.62 - Math.floor(k / 6) * s * 0.22;
+    });
+  }
+  if (din.barrera) din.barrera.rotation.z = mundo.pagado ? Math.PI * 0.42 : 0;
 }
 </script>
 </body>
