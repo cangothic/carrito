@@ -15,6 +15,22 @@
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="720">
 <meta name="twitter:card" content="summary_large_image">
+<script>
+// Google Analytics, solo en el sitio publicado: en local y en el artefacto gtag no manda nada.
+// Sin señales de anuncios; en Europa, sin cookies (no hay aviso de cookies que pida permiso).
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+if (location.hostname === 'carrito.canred.pro'){
+  gtag('consent', 'default', {ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied'});
+  gtag('consent', 'default', {analytics_storage:'denied', region:['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE','IS','LI','NO','GB','CH']});
+  gtag('js', new Date());
+  gtag('config', 'G-J4GCBT7P76');
+  const ga = document.createElement('script');
+  ga.async = true;
+  ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-J4GCBT7P76';
+  document.head.appendChild(ga);
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap">
@@ -2291,6 +2307,10 @@ try { Object.assign(S, JSON.parse(localStorage.getItem(CLAVE) || '{}')); } catch
 if (!(S.nivel >= 0 && S.nivel < NIVELES.length)) S.nivel = 0;
 let guardarTimer = 0;
 function guardar(){ clearTimeout(guardarTimer); guardarTimer = setTimeout(() => { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} }, 250); }
+// Eventos del juego para Google Analytics (los clics al canal los cuenta solo, como clics de salida).
+function anotar(evento, datos = {}){
+  try { if (typeof gtag === 'function') gtag('event', evento, datos); } catch (e){}
+}
 
 const VELOCIDADES = [[0.5, '×½'], [1, '×1'], [2, '×2'], [4, '×4'], [10, '×10']];
 const T_ACCION = () => 360 / S.vel, T_LINEA = () => 120 / S.vel;
@@ -2956,6 +2976,7 @@ function irANivel(i){
   if (corrida) detener();
   S.nivel = i; guardar();
   const niv = NIVELES[i];
+  anotar('empezar_nivel', {nivel:niv.num});
   pruebas = niv.pruebas();
   estadoPruebas = pruebas.map(() => null);
   const ref = parsear(niv.solucion);
@@ -3047,6 +3068,7 @@ function limpiarConsola(){ consola.innerHTML = ''; }
 function escribir(txt, clase){ const p = document.createElement('p'); p.className = clase; p.textContent = txt; consola.appendChild(p); consola.scrollTop = consola.scrollHeight; return p; }
 const info = t => escribir(t, 'info');
 function mostrarErrorPy(e){
+  anotar('fallar_programa', {nivel:NIVELES[S.nivel].num, falla:e.tipo});
   if (MODO_AR) plegar(false);
   lineaError = e.linea || 0;
   pintarEditor();
@@ -3095,6 +3117,7 @@ function informarFalla(r, i){
   if (MODO_AR) plegar(false);
   if (r.falla === 'python') mostrarErrorPy(r.error);
   else {
+    anotar('fallar_programa', {nivel:NIVELES[S.nivel].num, falla:r.falla});
     const [corto, largo, exp] = FALLAS[r.falla](r);
     if (r.linea){ lineaError = r.linea; pintarEditor(); }
     escribir(`Prueba ${i + 1} ✗ ${largo}`, 'mal');
@@ -3122,6 +3145,7 @@ function compilar(){
     escribir(niv.sec === 'for' ? 'Busca lo que se repite y ponlo dentro de un for.' : 'Busca una forma más corta.', 'exp');
     aviso(`Máximo ${niv.maxLineas} líneas`, 'mal');
     SON.error();
+    anotar('fallar_programa', {nivel:niv.num, falla:'maxLineas'});
     return null;
   }
   if (!ast.length){ escribir('Tu programa está vacío: escribe al menos una orden.', 'mal'); return null; }
@@ -3239,6 +3263,7 @@ function victoria(){
   S.estrellas[niv.id] = Math.max(S.estrellas[niv.id] || 0, est);
   guardar(); pintarEstrellasTotal();
   confeti(); SON.victoria();
+  anotar('superar_nivel', {nivel:niv.num, estrellas:est});
   const ultimo = S.nivel === NIVELES.length - 1;
   const total = NIVELES.reduce((s, x) => s + (S.estrellas[x.id] || 0), 0);
   let html = `<p class="eyebrow">// nivel ${String(niv.num).padStart(2, '0')} superado</p>
@@ -3291,7 +3316,10 @@ $('#b-ejecutar').addEventListener('click', ejecutar);
 $('#b-paso').addEventListener('click', pasoAPaso);
 $('#b-reiniciar').addEventListener('click', reiniciar);
 $('#b-niveles').addEventListener('click', abrirNiveles);
-$('#b-pista').addEventListener('click', () => { const p = $('#pista'); p.hidden = !p.hidden; $('#b-pista').textContent = p.hidden ? 'Ver una pista' : 'Ocultar la pista'; });
+$('#b-pista').addEventListener('click', () => {
+  const p = $('#pista'); p.hidden = !p.hidden; $('#b-pista').textContent = p.hidden ? 'Ver una pista' : 'Ocultar la pista';
+  if (!p.hidden) anotar('ver_pista', {nivel:NIVELES[S.nivel].num});
+});
 let borrarArmado = 0;
 $('#b-borrar').addEventListener('click', () => {
   const b = $('#b-borrar');
@@ -3348,6 +3376,7 @@ requestAnimationFrame(dibujar);
 const AR_JS = 'https://cdn.jsdelivr.net/npm/@ar-js-org/ar.js@3.4.8/three.js/build/ar-threex.mjs';
 let THREE, render = null, escena, camara, ancla, fuente = null, contexto = null, marcador = null;
 let ciudad = null, firma = '', din = null, viendo = null, modelos = null;
+let tarjetaVista = false;   // para Analytics: la primera vez que la cámara reconoce la tarjeta
 let modAR = null, ajustarAR = null, vertical = null, rehaciendo = false;
 let compo = null, fondo = null, cielo = null;
 const orbita = {az:-0.45, el:1.05};
@@ -3592,6 +3621,7 @@ function cuadro(t){
     if (marcador.visible !== viendo){
       viendo = marcador.visible;
       if (viendo) estadoAR('Tarjeta a la vista', 'ok');
+      if (viendo && !tarjetaVista){ tarjetaVista = true; anotar('ver_tarjeta', {nivel:NIVELES[S.nivel].num}); }
       else if (ancla.visible) estadoAR('Perdí la tarjeta: la ciudad se queda donde la viste', 'ojo');
     }
     ciudad?.scale.setScalar(CIUDAD_AR * zoom);
